@@ -27,6 +27,9 @@ export default function StartScreen() {
       <Button size="lg" className="px-10 text-base h-11" onClick={handleStart}>
         Start Run
       </Button>
+      <Button variant="outline" size="sm" onClick={() => navigate('/shop')}>
+        Shop
+      </Button>
       <Button variant="outline" size="sm" onClick={resetProgress}>
         Reset Progress
       </Button>
