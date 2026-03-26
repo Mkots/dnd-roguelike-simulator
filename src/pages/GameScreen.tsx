@@ -5,14 +5,13 @@ import { FighterCard } from '@/components/FighterCard';
 import { CombatLog } from '@/components/CombatLog';
 import { useRunStore } from '@/store/runStore';
 import { useGameStore } from '@/store/gameStore';
-import { collectRunRewards } from '@/engine/shop';
 
 const ROUND_INTERVAL_MS = 600;
 
 export default function GameScreen() {
   const navigate = useNavigate();
   const { runLog, currentFightIndex, nextFight, clearRun } = useRunStore();
-  const { playerState, collectRewards } = useGameStore();
+  const { collectRewards } = useGameStore();
   const [visibleRounds, setVisibleRounds] = useState(0);
 
   const fight = runLog?.fights[currentFightIndex] ?? null;
