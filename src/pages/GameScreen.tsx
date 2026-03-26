@@ -10,7 +10,7 @@ const ROUND_INTERVAL_MS = 600;
 
 export default function GameScreen() {
   const navigate = useNavigate();
-  const { runLog, currentFightIndex, nextFight, clearRun } = useRunStore();
+  const { runLog, currentFightIndex, nextFight } = useRunStore();
   const { collectRewards } = useGameStore();
   const [visibleRounds, setVisibleRounds] = useState(0);
 
@@ -59,7 +59,6 @@ export default function GameScreen() {
       const enemiesDefeated = runLog!.enemiesDefeated;
       const survived = runLog!.survived;
       collectRewards(enemiesDefeated);
-      clearRun();
       navigate('/results', { state: { enemiesDefeated, survived } });
     }
   };
