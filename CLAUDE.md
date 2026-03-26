@@ -9,7 +9,7 @@ Vite + React + TypeScript + Zustand + React Router + Shadcn + Tailwind
 * `src/components/ui/` — base Shadcn components
 ## Components
 * Components are decomposed for **maintainability and readability**, not for reuse
-* Internal helper components (like `Stat` inside `PlayerStats`) should stay in the same file — these are implementation details, don’t extract them into separate files
+* Internal helper components (like `Stat` inside `PlayerStats`) should stay in the same file — these are implementation details, don't extract them into separate files
 * Props should be passed as a whole object: `<HeroPreview hero={hero} />`, not as a spread of individual fields
 
 ## Game overview
@@ -21,7 +21,7 @@ D&D 5e roguelike: the player runs through a fixed sequence of enemies, one fight
 * `creature.ts` — `createCreature()` factory, `abilityModifier()`
 * `dice.ts` — dice rolling utilities (`roll`, `parseDiceFormula`)
 * `enemies.ts` — `ENEMIES: Creature[]` — 7 enemies with scaling difficulty
-* `shop.ts` — `buildHero()`, `createInitialPlayerState()`, `collectRunRewards()`, `purchase()`
+* `shop.ts` — `buildHero()`, `createInitialPlayerState()`, `collectRunRewards()`, `purchase()`, `getShopItems()`
 * `upgrades.ts` — `UPGRADES: UpgradeDefinition[]`, `WEAPON_PROGRESSION`
 * `index.ts` — re-exports public API
 
@@ -30,11 +30,14 @@ D&D 5e roguelike: the player runs through a fixed sequence of enemies, one fight
 * `runStore.ts` (`useRunStore`) — in-memory, not persisted. Holds `runLog` and `currentFightIndex`. Actions: `startRun()`, `nextFight()`, `clearRun()`
 
 ## Routing
-* `/` — `StartScreen` — hero preview, player stats, Start Run + Reset Progress
+* `/` — `StartScreen` — hero preview, player stats, Start Run + Shop + Reset Progress
 * `/game` — `GameScreen` — animated combat log, HP bars, Next Enemy / See Results
-* `/results` — `ResultsScreen` — (stub, not yet implemented)
+* `/results` — `ResultsScreen` — enemies defeated, gold earned, navigation to Shop or Play Again
+* `/shop` — `ShopScreen` — upgrade list with costs and buy buttons, accessible from Start and Results
 
 ## Key conventions
 * The entire run is simulated once in `startRun()` — never re-simulate mid-run
 * `runStore` is not persisted; navigating away mid-run loses progress (intentional)
 * Gold rewards are applied via `collectRewards()` called from `GameScreen` before navigating to `/results`
+* Do NOT call `clearRun()` before navigating away — it sets `runLog` to null which triggers the guard `useEffect` to redirect to `/`, overriding the intended navigation. `startRun()` overwrites `runLog` on the next run anyway
+* `CombatRound.heroAction` and `enemyAction` are both nullable — null means that combatant died before getting to act that round
