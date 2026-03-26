@@ -1,16 +1,14 @@
-import { useState } from 'react'
-import './App.css'
+import { Routes, Route } from 'react-router';
+import StartScreen from './pages/StartScreen';
+import GameScreen from './pages/GameScreen';
+import ResultsScreen from './pages/ResultsScreen';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <div>
-      <h1>
-        DND Roguelike Simulator
-     </h1>
-    </div>
-  )
+    <Routes>
+      <Route path="/" element={<StartScreen />} />
+      <Route path="/game" element={<GameScreen />} />
+      <Route path="/results" element={<ResultsScreen />} />
+    </Routes>
+  );
 }
-
-export default App
