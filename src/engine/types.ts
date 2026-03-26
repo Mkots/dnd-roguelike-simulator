@@ -40,7 +40,7 @@ export type MissAction = {
 export type CombatRound = {
   round: number;
   firstAttacker: 'hero' | 'enemy';
-  heroAction: AttackAction | MissAction;
+  heroAction: AttackAction | MissAction | null; // null if hero died on enemy's turn
   enemyAction: AttackAction | MissAction | null; // null if enemy died on hero's turn
   heroHpAfter: number;
   enemyHpAfter: number;

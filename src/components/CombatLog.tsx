@@ -24,14 +24,28 @@ export function CombatLog({ rounds, visibleCount }: Props) {
 }
 
 function RoundEntry({ round }: { round: CombatRound }) {
+  const heroLine = round.heroAction && (
+    <ActionLine action={round.heroAction} label="Hero" />
+  );
+  const enemyLine = round.enemyAction && (
+    <ActionLine action={round.enemyAction} label="Enemy" />
+  );
+
   return (
     <div>
       <p className="text-muted-foreground text-xs mb-1">
-        — Round {round.round} —
+        — Round {round.round}. The first attacker was {round.firstAttacker} —
       </p>
-      <ActionLine action={round.heroAction} label="Hero" />
-      {round.enemyAction && (
-        <ActionLine action={round.enemyAction} label="Enemy" />
+      {round.firstAttacker === "hero" ? (
+        <>
+          {heroLine}
+          {enemyLine}
+        </>
+      ) : (
+        <>
+          {enemyLine}
+          {heroLine}
+        </>
       )}
     </div>
   );
@@ -44,21 +58,29 @@ function ActionLine({
   action: AttackAction | MissAction;
   label: string;
 }) {
-  const atkMod = action.modifier >= 0 ? `+${action.modifier}` : `${action.modifier}`;
+  const atkMod =
+    action.modifier >= 0 ? `+${action.modifier}` : `${action.modifier}`;
 
   if (action.type === "hit") {
-    const dmgMod = action.damageModifier !== 0
-      ? (action.damageModifier > 0 ? `+${action.damageModifier}` : `${action.damageModifier}`)
-      : '';
+    const dmgMod =
+      action.damageModifier !== 0
+        ? action.damageModifier > 0
+          ? `+${action.damageModifier}`
+          : `${action.damageModifier}`
+        : "";
     return (
       <p className="text-green-400">
-        {label}: (1d20{atkMod}) {action.roll}{atkMod}={action.total} vs AC {action.targetAC} → HIT ({action.damageFormula}) {action.damageRoll}{dmgMod}={action.damage} dmg
+        {label}: (1d20{atkMod}) {action.roll}
+        {atkMod}={action.total} vs AC {action.targetAC} → HIT (
+        {action.damageFormula}) {action.damageRoll}
+        {dmgMod}={action.damage} dmg
       </p>
     );
   }
   return (
     <p className="text-muted-foreground">
-      {label}: (1d20{atkMod}) {action.roll}{atkMod}={action.total} vs AC {action.targetAC} → miss
+      {label}: (1d20{atkMod}) {action.roll}
+      {atkMod}={action.total} vs AC {action.targetAC} → miss
     </p>
   );
 }

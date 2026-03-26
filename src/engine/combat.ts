@@ -47,7 +47,7 @@ export const fight = (hero: Creature, enemy: Creature): FightLog => {
 
   while (heroHp > 0 && enemyHp > 0) {
     roundNum++;
-    let heroAction: AttackAction | MissAction;
+    let heroAction: AttackAction | MissAction | null;
     let enemyAction: AttackAction | MissAction | null;
 
     if (heroFirst) {
@@ -64,8 +64,12 @@ export const fight = (hero: Creature, enemy: Creature): FightLog => {
       enemyAction = resolveAttack(enemy, hero);
       if (enemyAction.type === "hit") heroHp -= enemyAction.damage;
 
-      heroAction = resolveAttack(hero, enemy);
-      if (heroAction.type === "hit") enemyHp -= heroAction.damage;
+      if (heroHp > 0) {
+        heroAction = resolveAttack(hero, enemy);
+        if (heroAction.type === "hit") enemyHp -= heroAction.damage;
+      } else {
+        heroAction = null;
+      }
     }
 
     rounds.push({
