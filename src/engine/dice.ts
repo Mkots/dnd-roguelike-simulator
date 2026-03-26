@@ -3,21 +3,27 @@ export const rollDie = (sides: number): number =>
 
 export const d20 = (): number => rollDie(20);
 
+type RollResult = {
+  diceRoll: number;  // sum of raw dice only
+  modifier: number;
+  total: number;     // Math.max(0, diceRoll + modifier)
+};
+
 // Parses and rolls dice formulas: "1d6", "2d8+3", "1d4-1"
-export const rollFormula = (formula: string): number => {
+export const rollFormula = (formula: string): RollResult => {
   const match = formula.trim().match(/^(\d+)d(\d+)([+-]\d+)?$/i);
   if (!match) throw new Error(`Invalid dice formula: "${formula}"`);
 
   const count = parseInt(match[1]);
   const sides = parseInt(match[2]);
-  const bonus = match[3] ? parseInt(match[3]) : 0;
+  const modifier = match[3] ? parseInt(match[3]) : 0;
 
-  let total = bonus;
+  let diceRoll = 0;
   for (let i = 0; i < count; i++) {
-    total += rollDie(sides);
+    diceRoll += rollDie(sides);
   }
 
-  return Math.max(0, total);
+  return { diceRoll, modifier, total: Math.max(0, diceRoll + modifier) };
 };
 
 export const buildFormula = (dice: string, modifier: number): string => {

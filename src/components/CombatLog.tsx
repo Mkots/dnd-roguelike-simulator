@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import type { CombatRound, AttackAction, MissAction } from '@/engine/types';
+import { useEffect, useRef } from "react";
+import type { CombatRound, AttackAction, MissAction } from "@/engine/types";
 
 type Props = {
   rounds: CombatRound[];
@@ -10,7 +10,7 @@ export function CombatLog({ rounds, visibleCount }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [visibleCount]);
 
   return (
@@ -26,26 +26,39 @@ export function CombatLog({ rounds, visibleCount }: Props) {
 function RoundEntry({ round }: { round: CombatRound }) {
   return (
     <div>
-      <p className="text-muted-foreground text-xs mb-1">— Round {round.round} —</p>
+      <p className="text-muted-foreground text-xs mb-1">
+        — Round {round.round} —
+      </p>
       <ActionLine action={round.heroAction} label="Hero" />
-      {round.enemyAction && <ActionLine action={round.enemyAction} label="Enemy" />}
+      {round.enemyAction && (
+        <ActionLine action={round.enemyAction} label="Enemy" />
+      )}
     </div>
   );
 }
 
-function ActionLine({ action, label }: { action: AttackAction | MissAction; label: string }) {
-  const mod = action.modifier >= 0 ? `+${action.modifier}` : `${action.modifier}`;
+function ActionLine({
+  action,
+  label,
+}: {
+  action: AttackAction | MissAction;
+  label: string;
+}) {
+  const atkMod = action.modifier >= 0 ? `+${action.modifier}` : `${action.modifier}`;
 
-  if (action.type === 'hit') {
+  if (action.type === "hit") {
+    const dmgMod = action.damageModifier !== 0
+      ? (action.damageModifier > 0 ? `+${action.damageModifier}` : `${action.damageModifier}`)
+      : '';
     return (
       <p className="text-green-400">
-        {label}: {action.roll}{mod}={action.total} vs AC {action.targetAC} → HIT {action.damage} dmg
+        {label}: (1d20{atkMod}) {action.roll}{atkMod}={action.total} vs AC {action.targetAC} → HIT ({action.damageFormula}) {action.damageRoll}{dmgMod}={action.damage} dmg
       </p>
     );
   }
   return (
     <p className="text-muted-foreground">
-      {label}: {action.roll}{mod}={action.total} vs AC {action.targetAC} → miss
+      {label}: (1d20{atkMod}) {action.roll}{atkMod}={action.total} vs AC {action.targetAC} → miss
     </p>
   );
 }

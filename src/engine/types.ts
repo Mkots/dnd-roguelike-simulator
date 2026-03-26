@@ -19,11 +19,14 @@ export type Creature = {
 
 export type AttackAction = {
   type: 'hit';
-  roll: number;
-  modifier: number;
-  total: number;
+  roll: number;        // raw d20
+  modifier: number;    // attack bonus
+  total: number;       // roll + modifier
   targetAC: number;
-  damage: number;
+  damageFormula: string;
+  damageRoll: number;  // raw damage dice (without modifier)
+  damageModifier: number;
+  damage: number;      // total damage
 };
 
 export type MissAction = {

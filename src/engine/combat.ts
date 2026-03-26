@@ -18,14 +18,17 @@ const resolveAttack = (
   const total = roll + modifier;
 
   if (total >= target.armorClass) {
-    const damage = rollFormula(attacker.damageFormula);
+    const dmg = rollFormula(attacker.damageFormula);
     return {
       type: "hit",
       roll,
       modifier,
       total,
       targetAC: target.armorClass,
-      damage,
+      damageFormula: attacker.damageFormula,
+      damageRoll: dmg.diceRoll,
+      damageModifier: dmg.modifier,
+      damage: dmg.total,
     };
   }
 
