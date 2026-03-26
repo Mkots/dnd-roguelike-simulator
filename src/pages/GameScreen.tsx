@@ -43,13 +43,14 @@ export default function GameScreen() {
   const animationDone = visibleRounds >= fight.rounds.length;
   const isLastFight = currentFightIndex === (runLog?.fights.length ?? 0) - 1;
 
-  const heroHp = visibleRounds === 0
+  const roundIdx = Math.min(visibleRounds, fight.rounds.length);
+  const heroHp = roundIdx === 0
     ? fight.hero.currentHp
-    : fight.rounds[visibleRounds - 1].heroHpAfter;
+    : fight.rounds[roundIdx - 1].heroHpAfter;
 
-  const enemyHp = visibleRounds === 0
+  const enemyHp = roundIdx === 0
     ? fight.enemy.currentHp
-    : fight.rounds[visibleRounds - 1].enemyHpAfter;
+    : fight.rounds[roundIdx - 1].enemyHpAfter;
 
   const handleContinue = () => {
     if (!isLastFight && fight.winner === 'hero') {
