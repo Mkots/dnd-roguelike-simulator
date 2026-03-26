@@ -56,9 +56,11 @@ export default function GameScreen() {
     if (!isLastFight && fight.winner === 'hero') {
       nextFight();
     } else {
-      collectRewards(runLog!.enemiesDefeated);
+      const enemiesDefeated = runLog!.enemiesDefeated;
+      const survived = runLog!.survived;
+      collectRewards(enemiesDefeated);
       clearRun();
-      navigate('/results');
+      navigate('/results', { state: { enemiesDefeated, survived } });
     }
   };
 
