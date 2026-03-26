@@ -10,7 +10,7 @@ import type { RunStore } from '../store/runStore';
 
 export default function StartScreen() {
   const navigate = useNavigate();
-  const { playerState, getHero } = useGameStore();
+  const { playerState, getHero, resetProgress } = useGameStore();
   const startRun = useRunStore((s: RunStore) => s.startRun);
   const hero = getHero();
 
@@ -26,6 +26,9 @@ export default function StartScreen() {
       <HeroPreview hero={hero} />
       <Button size="lg" className="px-10 text-base h-11" onClick={handleStart}>
         Start Run
+      </Button>
+      <Button variant="outline" size="sm" onClick={resetProgress}>
+        Reset Progress
       </Button>
     </div>
   );
