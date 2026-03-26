@@ -6,6 +6,7 @@ import { HeroPreview } from '@/components/HeroPreview';
 import { useGameStore } from '@/store/gameStore';
 import { useRunStore } from '@/store/runStore';
 import { ENEMIES } from '@/engine/enemies';
+import { randomizeEnemyNames } from '@/engine/names';
 import type { RunStore } from '../store/runStore';
 
 export default function StartScreen() {
@@ -15,7 +16,7 @@ export default function StartScreen() {
   const hero = getHero();
 
   const handleStart = () => {
-    startRun(hero, ENEMIES);
+    startRun(hero, randomizeEnemyNames(ENEMIES));
     navigate('/game');
   };
 
