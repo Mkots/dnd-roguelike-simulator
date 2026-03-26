@@ -68,9 +68,9 @@ export default function GameScreen() {
 
       {/* Fighters */}
       <div className="flex items-center gap-4 w-full">
-        <FighterCard name={fight.hero.name} currentHp={heroHp} maxHp={fight.hero.maxHp} isHero />
+        <FighterCard name={fight.hero.name} avatar={fight.hero.avatar} currentHp={heroHp} maxHp={fight.hero.maxHp} isHero />
         <span className="text-muted-foreground font-bold shrink-0">VS</span>
-        <FighterCard name={fight.enemy.name} currentHp={Math.max(0, enemyHp)} maxHp={fight.enemy.maxHp} />
+        <FighterCard name={fight.enemy.name} avatar={fight.enemy.avatar} currentHp={Math.max(0, enemyHp)} maxHp={fight.enemy.maxHp} />
       </div>
 
       {/* Combat log */}

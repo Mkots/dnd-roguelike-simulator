@@ -4,6 +4,9 @@ import type { Creature } from '@/engine/types';
 export function HeroPreview({ hero }: { hero: Creature }) {
   return (
     <div className="border border-border rounded-xl p-6 w-full max-w-sm bg-card">
+      {hero.avatar && (
+        <div className="text-4xl text-center mb-3" aria-hidden="true">{hero.avatar}</div>
+      )}
       <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">Hero</p>
       <div className="grid grid-cols-2 gap-3">
         <Stat icon={<Heart className="size-4 text-red-400" />} label="HP" value={`${hero.maxHp}`} />

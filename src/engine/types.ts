@@ -9,6 +9,7 @@ export type AbilityScores = {
 
 export type Creature = {
   name: string;
+  avatar?: string; // emoji avatar
   abilities: AbilityScores;
   maxHp: number;
   currentHp: number;
