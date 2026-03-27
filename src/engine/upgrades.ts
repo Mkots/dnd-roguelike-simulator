@@ -45,4 +45,11 @@ export const UPGRADES: UpgradeDefinition[] = [
     costPerLevel: 8,
     maxLevel: 2,
   },
+  {
+    id: 'gold-multiplier',
+    name: 'Gold Multiplier',
+    description: 'Earn more gold per kill: ×1.1 → ×1.2 → ×1.3 → ×1.4 → ×1.5',
+    costPerLevel: 10,
+    maxLevel: 5,
+  },
 ];

@@ -107,11 +107,13 @@ export const simulateRun = (hero: Creature, enemies: Creature[]): RunLog => {
   }
 
   const lastFight = fights[fights.length - 1];
+  const survived = lastFight.winner === 'hero';
 
   return {
     fights,
-    survived: lastFight.winner === "hero",
+    survived,
     enemiesDefeated: fights.filter((f) => f.winner === "hero").length,
     heroFinalHp: lastFight.heroFinalHp,
+    exitType: survived ? 'survived' : 'died',
   };
 };

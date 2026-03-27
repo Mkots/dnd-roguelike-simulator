@@ -7,6 +7,7 @@ import {
   buildHero,
   collectRunRewards,
   purchase,
+  buyHealCharge as buyHealChargeFromShop,
 } from '../engine/shop';
 import { WEAPON_PROGRESSION } from '../engine/upgrades';
 
@@ -29,8 +30,10 @@ export const DEFAULT_HERO_CONFIG: HeroConfig = {
 type GameStore = {
   playerState: PlayerState;
   getHero: () => Creature;
-  collectRewards: (enemiesDefeated: number) => void;
+  collectRewards: (enemiesDefeated: number, exitType: 'survived' | 'died' | 'early-exit') => void;
   buyUpgrade: (upgradeId: string) => boolean;
+  buyHealCharge: () => boolean;
+  spendHealCharge: () => boolean;
   resetProgress: () => void;
 };
 
@@ -41,15 +44,30 @@ export const useGameStore = create<GameStore>()(
 
       getHero: () => buildHero(DEFAULT_HERO_CONFIG, get().playerState),
 
-      collectRewards: (enemiesDefeated) =>
+      collectRewards: (enemiesDefeated, exitType) =>
         set(s => ({
-          playerState: collectRunRewards(s.playerState, enemiesDefeated),
+          playerState: collectRunRewards(s.playerState, enemiesDefeated, exitType),
         })),
 
       buyUpgrade: (upgradeId) => {
         const result = purchase(get().playerState, upgradeId);
         if (result.success) set({ playerState: result.playerState });
         return result.success;
+      },
+
+      buyHealCharge: () => {
+        const result = buyHealChargeFromShop(get().playerState);
+        if (result.success) set({ playerState: result.playerState });
+        return result.success;
+      },
+
+      spendHealCharge: () => {
+        const { playerState } = get();
+        if (playerState.healCharges <= 0) return false;
+        set(s => ({
+          playerState: { ...s.playerState, healCharges: s.playerState.healCharges - 1 },
+        }));
+        return true;
       },
 
       resetProgress: () => set({ playerState: createInitialPlayerState() }),
