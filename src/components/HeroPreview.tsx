@@ -1,10 +1,10 @@
 import { Sword, Shield, Heart, Zap } from "lucide-react";
 import type { Creature } from "@/engine/types";
 import { abilityModifier } from "@/engine/creature";
-import { AVATARS } from "./avatars";
+import { getAvatar } from "./avatars";
 
 export function HeroPreview({ hero }: { hero: Creature }) {
-  const avatar = hero.kind ? AVATARS[hero.kind] : undefined;
+  const avatar = getAvatar(hero.kind, hero.avatarSeed);
 
   return (
     <div className="border border-border rounded-xl overflow-hidden w-full max-w-sm bg-card">

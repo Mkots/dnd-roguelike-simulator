@@ -1,41 +1,76 @@
-import { cn } from '@/lib/utils';
-import { AVATARS } from './avatars';
+import { cn } from "@/lib/utils";
+import { getAvatar } from "./avatars";
 
 type Props = {
   name: string;
   kind?: string;
+  avatarSeed?: number;
   currentHp: number;
   maxHp: number;
   isHero?: boolean;
 };
 
-export function FighterCard({ name, kind, currentHp, maxHp, isHero = false }: Props) {
+export function FighterCard({
+  name,
+  kind,
+  avatarSeed,
+  currentHp,
+  maxHp,
+  isHero = false,
+}: Props) {
   const pct = Math.max(0, Math.min(100, (currentHp / maxHp) * 100));
   const isDead = currentHp <= 0;
-  const avatar = kind ? AVATARS[kind] : undefined;
+  const avatar = getAvatar(kind, avatarSeed);
+  const testIdPrefix = `fighter-card-${isHero ? "hero" : "enemy"}`;
 
   return (
     <div
-      className="relative flex-1 border border-border rounded-xl overflow-hidden bg-card"
-      style={avatar ? { backgroundImage: `url(${avatar})`, backgroundSize: '70%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center 30%' } : undefined}
+      className="relative flex-1 border border-border rounded-xl overflow-hidden bg-card bg-cover"
+      data-testid={testIdPrefix}
+      style={
+        avatar
+          ? {
+              backgroundImage: `url(${avatar})`,
+              backgroundRepeat: "no-repeat",
+            }
+          : undefined
+      }
     >
-      <div className="absolute inset-x-0 bottom-0 bg-card/80 backdrop-blur-sm p-3">
-        <p className="text-sm font-semibold mb-2 truncate">{name}</p>
-        <div className="h-2 bg-muted rounded-full overflow-hidden mb-1">
+      <div
+        data-testid={`${testIdPrefix}-details`}
+        className="absolute inset-x-0 bottom-0 bg-card/30 backdrop-blur-xs p-3"
+      >
+        <p
+          data-testid={`${testIdPrefix}-name`}
+          className="text-sm font-semibold mb-2"
+        >
+          {name}
+        </p>
+        <div
+          data-testid={`${testIdPrefix}-hp`}
+          className="h-2 bg-muted rounded-full overflow-hidden mb-1"
+        >
           <div
             className={cn(
-              'h-full rounded-full transition-all duration-300',
-              isDead ? 'bg-destructive' : isHero ? 'bg-green-500' : 'bg-red-500'
+              "h-full rounded-full transition-all duration-300",
+              isDead
+                ? "bg-destructive"
+                : isHero
+                  ? "bg-green-500"
+                  : "bg-red-500",
             )}
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="text-xs text-muted-foreground font-mono">
+        <p
+          data-testid={`${testIdPrefix}-hp-text`}
+          className="text-xs text-muted-foreground font-mono"
+        >
           {Math.max(0, currentHp)} / {maxHp} HP
         </p>
       </div>
       {/* Spacer to give height for the background image */}
-      <div className="h-36" />
+      <div className="h-64" />
     </div>
   );
 }

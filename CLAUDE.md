@@ -37,7 +37,7 @@ D&D 5e roguelike: the player runs through a fixed sequence of enemies, one fight
 * `/shop` — `ShopScreen` — upgrade list with costs and buy buttons, accessible from Start and Results
 
 ## Components (`src/components/`)
-* `avatars.ts` — maps `Creature.kind` string to imported PNG from `src/assets/` (e.g. `'goblin'` → `goblin.png`)
+* `avatars.ts` — uses `import.meta.glob` to build `AVATAR_POOLS: Record<string, string[]>` from `src/assets/<kind>/` subfolders. `getAvatar(kind, seed?)` picks a stable image using `Creature.avatarSeed`
 * `FighterCard` — shows creature avatar as card background image, HP bar and name in a frosted overlay at the bottom
 * `HeroPreview` — shows hero avatar as a banner, combat stats (HP/AC/Attack/Damage) and full ability scores grid
 
@@ -47,5 +47,5 @@ D&D 5e roguelike: the player runs through a fixed sequence of enemies, one fight
 * Gold rewards are applied via `collectRewards()` called from `GameScreen` before navigating to `/results`
 * Do NOT call `clearRun()` before navigating away — it sets `runLog` to null which triggers the guard `useEffect` to redirect to `/`, overriding the intended navigation. `startRun()` overwrites `runLog` on the next run anyway
 * `CombatRound.heroAction` and `enemyAction` are both nullable — null means that combatant died before getting to act that round
-* `Creature.kind` identifies the enemy type (e.g. `'goblin'`, `'dark-knight'`) — used for avatar lookup; `Creature.name` holds the randomized display name
+* `Creature.kind` identifies the enemy type (e.g. `'goblin'`, `'dark-knight'`) — used for avatar lookup; `Creature.name` holds the randomized display name; `Creature.avatarSeed` is a stable `Math.random()` float set at creature creation, used to pick a consistent image from the avatar pool
 * `createEnemies()` must be called fresh for each run (not cached) — it generates new random names every call

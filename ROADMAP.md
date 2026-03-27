@@ -18,6 +18,7 @@
 ## Up next
 - [x] Add random name generator for enemies
 - [x] Add Hero and Enemies avatars
+- [x] Random avatar selection — each enemy picks randomly from a pool of images per kind; avatar is stable for the duration of the run
 
 ## Later
 - [ ] Balance pass — enemies, gold economy, upgrade costs
