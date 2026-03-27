@@ -62,6 +62,7 @@ export type RunLog = {
   survived: boolean;
   enemiesDefeated: number;
   heroFinalHp: number;
+  exitType: 'survived' | 'died' | 'early-exit';
 };
 
 // --- Shop & Meta-progression ---
@@ -79,7 +80,10 @@ export type PlayerState = {
   purchasedUpgrades: Record<string, number>; // upgradeId -> levels purchased
   totalRuns: number;
   bestRun: number; // max enemies defeated in one run
+  healCharges: number;
 };
+
+export const HEAL_AMOUNT = 10;
 
 export type ShopItem = UpgradeDefinition & {
   currentLevel: number;

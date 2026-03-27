@@ -2,12 +2,12 @@ import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { GameTitle } from '@/components/GameTitle';
 import { useGameStore } from '@/store/gameStore';
-import { getShopItems } from '@/engine/shop';
+import { getShopItems, HEAL_CHARGE_COST } from '@/engine/shop';
 import type { ShopItem } from '@/engine/types';
 
 export default function ShopScreen() {
   const navigate = useNavigate();
-  const { playerState, buyUpgrade } = useGameStore();
+  const { playerState, buyUpgrade, buyHealCharge } = useGameStore();
   const items = getShopItems(playerState);
 
   return (
@@ -25,6 +25,16 @@ export default function ShopScreen() {
         {items.map((item) => (
           <UpgradeCard key={item.id} item={item} onBuy={() => buyUpgrade(item.id)} />
         ))}
+      </div>
+
+      <div className="flex flex-col gap-3 w-full">
+        <h3 className="text-base font-semibold">Consumables</h3>
+        <HealChargeCard
+          charges={playerState.healCharges}
+          cost={HEAL_CHARGE_COST}
+          affordable={playerState.gold >= HEAL_CHARGE_COST}
+          onBuy={buyHealCharge}
+        />
       </div>
 
       <Button variant="outline" onClick={() => navigate(-1)}>
@@ -57,6 +67,40 @@ function UpgradeCard({ item, onBuy }: { item: ShopItem; onBuy: () => void }) {
         className="shrink-0"
       >
         {maxed ? 'Maxed' : `${item.cost}g`}
+      </Button>
+    </div>
+  );
+}
+
+function HealChargeCard({
+  charges,
+  cost,
+  affordable,
+  onBuy,
+}: {
+  charges: number;
+  cost: number;
+  affordable: boolean;
+  onBuy: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 border border-border rounded-lg p-4">
+      <div className="flex flex-col gap-0.5 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-sm">Healing Potion</span>
+          <span className="text-xs text-muted-foreground">[{charges}]</span>
+        </div>
+        <span className="text-xs text-muted-foreground">+10 HP, usable once between fights</span>
+      </div>
+
+      <Button
+        size="sm"
+        variant="default"
+        disabled={!affordable}
+        onClick={onBuy}
+        className="shrink-0"
+      >
+        {cost}g
       </Button>
     </div>
   );

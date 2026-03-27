@@ -3,16 +3,29 @@ import { createCreature } from './creature';
 import { UPGRADES, WEAPON_PROGRESSION } from './upgrades';
 
 export const GOLD_PER_KILL = 2;
+export const HEAL_CHARGE_COST = 10;
+export const DEATH_PENALTY_PERCENT = 0.20;
+const GOLD_MULTIPLIER_INCREMENT = 0.1;
 
 export const createInitialPlayerState = (): PlayerState => ({
   gold: 5,
   purchasedUpgrades: {},
   totalRuns: 0,
   bestRun: 0,
+  healCharges: 0,
 });
 
 const upgradeCost = (costPerLevel: number, currentLevel: number): number =>
   costPerLevel * (currentLevel + 1);
+
+export const getGoldMultiplier = (purchasedUpgrades: Record<string, number>): number =>
+  1 + (purchasedUpgrades['gold-multiplier'] ?? 0) * GOLD_MULTIPLIER_INCREMENT;
+
+export const calculateGoldPenalty = (
+  totalGold: number,
+  exitType: 'survived' | 'died' | 'early-exit'
+): number =>
+  exitType === 'died' ? Math.floor(totalGold * DEATH_PENALTY_PERCENT) : 0;
 
 export const getShopItems = (playerState: PlayerState): ShopItem[] =>
   UPGRADES.map(u => {
@@ -52,15 +65,37 @@ export const purchase = (playerState: PlayerState, upgradeId: string): ShopResul
   };
 };
 
+export const buyHealCharge = (playerState: PlayerState): ShopResult => {
+  if (playerState.gold < HEAL_CHARGE_COST)
+    return { success: false, reason: `Need ${HEAL_CHARGE_COST} gold, have ${playerState.gold}`, playerState };
+
+  return {
+    success: true,
+    playerState: {
+      ...playerState,
+      gold: playerState.gold - HEAL_CHARGE_COST,
+      healCharges: playerState.healCharges + 1,
+    },
+  };
+};
+
 export const collectRunRewards = (
   playerState: PlayerState,
-  enemiesDefeated: number
-): PlayerState => ({
-  ...playerState,
-  gold: playerState.gold + enemiesDefeated * GOLD_PER_KILL,
-  totalRuns: playerState.totalRuns + 1,
-  bestRun: Math.max(playerState.bestRun, enemiesDefeated),
-});
+  enemiesDefeated: number,
+  exitType: 'survived' | 'died' | 'early-exit' = 'survived'
+): PlayerState => {
+  const multiplier = getGoldMultiplier(playerState.purchasedUpgrades);
+  const goldEarned = Math.round(enemiesDefeated * GOLD_PER_KILL * multiplier);
+  const totalGold = playerState.gold + goldEarned;
+  const penalty = calculateGoldPenalty(totalGold, exitType);
+
+  return {
+    ...playerState,
+    gold: totalGold - penalty,
+    totalRuns: playerState.totalRuns + 1,
+    bestRun: Math.max(playerState.bestRun, enemiesDefeated),
+  };
+};
 
 // --- Hero factory ---
 

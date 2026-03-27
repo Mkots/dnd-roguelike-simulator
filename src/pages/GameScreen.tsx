@@ -5,14 +5,17 @@ import { FighterCard } from '@/components/FighterCard';
 import { CombatLog } from '@/components/CombatLog';
 import { useRunStore } from '@/store/runStore';
 import { useGameStore } from '@/store/gameStore';
+import { HEAL_AMOUNT } from '@/engine/types';
+import { GOLD_PER_KILL, getGoldMultiplier, calculateGoldPenalty } from '@/engine/shop';
 
 const ROUND_INTERVAL_MS = 600;
 
 export default function GameScreen() {
   const navigate = useNavigate();
-  const { runLog, currentFightIndex, nextFight } = useRunStore();
-  const { collectRewards } = useGameStore();
-  const [visibleRounds, setVisibleRounds] = useState(0);
+  const { runLog, currentFightIndex, nextFight, applyHeal, exitEarly } = useRunStore();
+  const { collectRewards, playerState, spendHealCharge, getHero } = useGameStore();
+  const [anim, setAnim] = useState({ fightIndex: -1, rounds: 0 });
+  const visibleRounds = anim.fightIndex === currentFightIndex ? anim.rounds : 0;
 
   const fight = runLog?.fights[currentFightIndex] ?? null;
 
@@ -20,18 +23,18 @@ export default function GameScreen() {
     if (!runLog) navigate('/', { replace: true });
   }, [runLog, navigate]);
 
-  // Restart animation whenever the fight changes
+  // Animate rounds; reset is handled inside the callback when fightIndex changes
   useEffect(() => {
     if (!fight) return;
-    setVisibleRounds(0);
 
     const timer = setInterval(() => {
-      setVisibleRounds((prev) => {
-        if (prev >= fight.rounds.length) {
+      setAnim((prev) => {
+        const rounds = prev.fightIndex === currentFightIndex ? prev.rounds : 0;
+        if (rounds >= fight.rounds.length) {
           clearInterval(timer);
-          return prev;
+          return { fightIndex: currentFightIndex, rounds };
         }
-        return prev + 1;
+        return { fightIndex: currentFightIndex, rounds: rounds + 1 };
       });
     }, ROUND_INTERVAL_MS);
 
@@ -52,16 +55,36 @@ export default function GameScreen() {
     ? fight.enemy.currentHp
     : fight.rounds[roundIdx - 1].enemyHpAfter;
 
+  const handleHeal = () => {
+    const used = spendHealCharge();
+    if (used) {
+      applyHeal(HEAL_AMOUNT, getHero());
+    }
+  };
+
+  const handleLeaveRun = () => {
+    const enemiesDefeated = runLog!.enemiesDefeated;
+    exitEarly();
+    collectRewards(enemiesDefeated, 'early-exit');
+    navigate('/results', { state: { enemiesDefeated, exitType: 'early-exit', goldPenalty: 0 } });
+  };
+
   const handleContinue = () => {
     if (!isLastFight && fight.winner === 'hero') {
       nextFight();
     } else {
       const enemiesDefeated = runLog!.enemiesDefeated;
-      const survived = runLog!.survived;
-      collectRewards(enemiesDefeated);
-      navigate('/results', { state: { enemiesDefeated, survived } });
+      const exitType = runLog!.survived ? 'survived' : 'died';
+      const multiplier = getGoldMultiplier(playerState.purchasedUpgrades);
+      const goldEarned = Math.round(enemiesDefeated * GOLD_PER_KILL * multiplier);
+      const goldPenalty = calculateGoldPenalty(playerState.gold + goldEarned, exitType);
+      collectRewards(enemiesDefeated, exitType);
+      navigate('/results', { state: { enemiesDefeated, exitType, goldPenalty } });
     }
   };
+
+  const showBetweenFightActions = animationDone && fight.winner === 'hero' && !isLastFight;
+  const showEndActions = animationDone && (fight.winner === 'enemy' || isLastFight);
 
   return (
     <div className="min-h-screen flex flex-col items-center gap-8 px-4 py-10 max-w-lg mx-auto">
@@ -76,10 +99,30 @@ export default function GameScreen() {
       {/* Combat log */}
       <CombatLog rounds={fight.rounds} visibleCount={visibleRounds} />
 
-      {/* Continue button */}
-      {animationDone && (
+      {/* Between-fight actions: Heal, Leave Run, Next Enemy */}
+      {showBetweenFightActions && (
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={handleHeal}
+            disabled={playerState.healCharges === 0}
+          >
+            Heal (+{HEAL_AMOUNT} HP) [{playerState.healCharges}]
+          </Button>
+          <Button size="lg" variant="outline" onClick={handleLeaveRun}>
+            Leave Run (safe)
+          </Button>
+          <Button size="lg" onClick={handleContinue}>
+            Next Enemy → ⚠ Risk: death = −20% gold
+          </Button>
+        </div>
+      )}
+
+      {/* End-of-run action */}
+      {showEndActions && (
         <Button size="lg" onClick={handleContinue}>
-          {!isLastFight && fight.winner === 'hero' ? 'Next Enemy →' : 'See Results'}
+          See Results
         </Button>
       )}
 

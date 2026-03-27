@@ -2,12 +2,14 @@ import { useLocation, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { GameTitle } from '@/components/GameTitle';
 import { useGameStore } from '@/store/gameStore';
-import { GOLD_PER_KILL } from '@/engine/shop';
+import { GOLD_PER_KILL, getGoldMultiplier } from '@/engine/shop';
 import { ENEMY_COUNT } from '@/engine/enemies';
+import { cn } from '@/lib/utils';
 
 type ResultsState = {
   enemiesDefeated: number;
-  survived: boolean;
+  exitType: 'survived' | 'died' | 'early-exit';
+  goldPenalty: number;
 };
 
 export default function ResultsScreen() {
@@ -22,9 +24,20 @@ export default function ResultsScreen() {
     return null;
   }
 
-  const { enemiesDefeated, survived } = state;
-  const goldEarned = enemiesDefeated * GOLD_PER_KILL;
+  const { enemiesDefeated, exitType, goldPenalty } = state;
+  const multiplier = getGoldMultiplier(playerState.purchasedUpgrades);
+  const goldEarned = Math.round(enemiesDefeated * GOLD_PER_KILL * multiplier);
   const totalEnemies = ENEMY_COUNT;
+
+  const heading =
+    exitType === 'survived' ? 'Victory!' :
+    exitType === 'early-exit' ? 'Safe Exit' :
+    'Defeated';
+
+  const subtext =
+    exitType === 'survived' ? 'You cleared all enemies!' :
+    exitType === 'early-exit' ? 'You left with your gold intact.' :
+    'Better luck next time.';
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-8 px-4">
@@ -32,16 +45,22 @@ export default function ResultsScreen() {
 
       <div className="flex flex-col items-center gap-2">
         <h2 className="text-2xl font-bold">
-          {survived ? 'Victory!' : 'Defeated'}
+          {heading}
         </h2>
         <p className="text-muted-foreground text-sm">
-          {survived ? 'You cleared all enemies!' : 'Better luck next time.'}
+          {subtext}
         </p>
       </div>
 
       <div className="flex flex-col gap-3 w-full max-w-xs">
         <ResultRow label="Enemies Defeated" value={`${enemiesDefeated} / ${totalEnemies}`} />
         <ResultRow label="Gold Earned" value={`+${goldEarned} gold`} />
+        {multiplier > 1 && (
+          <ResultRow label="Gold Multiplier" value={`×${multiplier.toFixed(1)}`} />
+        )}
+        {exitType === 'died' && goldPenalty > 0 && (
+          <ResultRow label="Death Penalty (−20%)" value={`−${goldPenalty} gold`} highlight="red" />
+        )}
         <ResultRow label="Total Gold" value={`${playerState.gold} gold`} />
       </div>
 
@@ -57,11 +76,11 @@ export default function ResultsScreen() {
   );
 }
 
-function ResultRow({ label, value }: { label: string; value: string }) {
+function ResultRow({ label, value, highlight }: { label: string; value: string; highlight?: 'red' }) {
   return (
     <div className="flex justify-between items-center border-b border-border pb-2">
       <span className="text-muted-foreground text-sm">{label}</span>
-      <span className="font-semibold">{value}</span>
+      <span className={cn('font-semibold', highlight === 'red' && 'text-red-500')}>{value}</span>
     </div>
   );
 }
