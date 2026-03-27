@@ -20,7 +20,8 @@ D&D 5e roguelike: the player runs through a fixed sequence of enemies, one fight
 * `combat.ts` — `fight(hero, enemy) → FightLog`, `simulateRun(hero, enemies) → RunLog`
 * `creature.ts` — `createCreature()` factory, `abilityModifier()`
 * `dice.ts` — dice rolling utilities (`roll`, `parseDiceFormula`)
-* `enemies.ts` — `ENEMIES: Creature[]` — 7 enemies with scaling difficulty
+* `enemies.ts` — `createEnemies(): Creature[]` — creates 7 fresh enemies per call with randomized names; `ENEMY_COUNT = 7`
+* `names.ts` — `generateEnemyName(type: string): string` — generates an absurd random name (e.g. "Grukk the Moist Turnip of Regret"), called inside `createEnemies()`
 * `shop.ts` — `buildHero()`, `createInitialPlayerState()`, `collectRunRewards()`, `purchase()`, `getShopItems()`
 * `upgrades.ts` — `UPGRADES: UpgradeDefinition[]`, `WEAPON_PROGRESSION`
 * `index.ts` — re-exports public API
@@ -35,9 +36,16 @@ D&D 5e roguelike: the player runs through a fixed sequence of enemies, one fight
 * `/results` — `ResultsScreen` — enemies defeated, gold earned, navigation to Shop or Play Again
 * `/shop` — `ShopScreen` — upgrade list with costs and buy buttons, accessible from Start and Results
 
+## Components (`src/components/`)
+* `avatars.ts` — maps `Creature.kind` string to imported PNG from `src/assets/` (e.g. `'goblin'` → `goblin.png`)
+* `FighterCard` — shows creature avatar as card background image, HP bar and name in a frosted overlay at the bottom
+* `HeroPreview` — shows hero avatar as a banner, combat stats (HP/AC/Attack/Damage) and full ability scores grid
+
 ## Key conventions
 * The entire run is simulated once in `startRun()` — never re-simulate mid-run
 * `runStore` is not persisted; navigating away mid-run loses progress (intentional)
 * Gold rewards are applied via `collectRewards()` called from `GameScreen` before navigating to `/results`
 * Do NOT call `clearRun()` before navigating away — it sets `runLog` to null which triggers the guard `useEffect` to redirect to `/`, overriding the intended navigation. `startRun()` overwrites `runLog` on the next run anyway
 * `CombatRound.heroAction` and `enemyAction` are both nullable — null means that combatant died before getting to act that round
+* `Creature.kind` identifies the enemy type (e.g. `'goblin'`, `'dark-knight'`) — used for avatar lookup; `Creature.name` holds the randomized display name
+* `createEnemies()` must be called fresh for each run (not cached) — it generates new random names every call

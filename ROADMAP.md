@@ -16,8 +16,8 @@
 - [x] Bug fix — "See Results" navigating to `/` instead of `/results`
 
 ## Up next
-- [ ] Add random name generator for enemies
-- [ ] Add Hero and Enemies avatars
+- [x] Add random name generator for enemies
+- [x] Add Hero and Enemies avatars
 
 ## Later
 - [ ] Balance pass — enemies, gold economy, upgrade costs
