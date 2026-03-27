@@ -1,21 +1,23 @@
 import { cn } from '@/lib/utils';
+import { AVATARS } from './avatars';
 
 type Props = {
   name: string;
-  avatar?: string;
+  kind?: string;
   currentHp: number;
   maxHp: number;
   isHero?: boolean;
 };
 
-export function FighterCard({ name, avatar, currentHp, maxHp, isHero = false }: Props) {
+export function FighterCard({ name, kind, currentHp, maxHp, isHero = false }: Props) {
   const pct = Math.max(0, Math.min(100, (currentHp / maxHp) * 100));
   const isDead = currentHp <= 0;
+  const avatar = kind ? AVATARS[kind] : undefined;
 
   return (
     <div className="flex-1 border border-border rounded-xl p-4 bg-card">
       {avatar && (
-        <div className="text-3xl text-center mb-2" aria-hidden="true">{avatar}</div>
+        <img src={avatar} alt={kind} className="w-12 h-12 object-contain mx-auto mb-2" />
       )}
       <p className="text-sm font-semibold mb-3 truncate">{name}</p>
       <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">

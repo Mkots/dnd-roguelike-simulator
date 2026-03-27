@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { GameTitle } from '@/components/GameTitle';
 import { useGameStore } from '@/store/gameStore';
 import { GOLD_PER_KILL } from '@/engine/shop';
-import { ENEMIES } from '@/engine/enemies';
+import { ENEMY_COUNT } from '@/engine/enemies';
 
 type ResultsState = {
   enemiesDefeated: number;
@@ -24,7 +24,7 @@ export default function ResultsScreen() {
 
   const { enemiesDefeated, survived } = state;
   const goldEarned = enemiesDefeated * GOLD_PER_KILL;
-  const totalEnemies = ENEMIES.length;
+  const totalEnemies = ENEMY_COUNT;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-8 px-4">

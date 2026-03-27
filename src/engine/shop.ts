@@ -66,7 +66,6 @@ export const collectRunRewards = (
 
 export type HeroConfig = {
   name: string;
-  avatar?: string;
   baseAbilities: AbilityScores;
   hitDie?: number;
   attackAbility?: keyof AbilityScores;
@@ -95,6 +94,5 @@ export const buildHero = (config: HeroConfig, playerState: PlayerState): Creatur
     weaponDice: WEAPON_PROGRESSION[weaponIndex],
     armorBonus: u['armor'] ?? 0,
     proficiencyBonus: 2 + (u['proficiency'] ?? 0),
-    avatar: config.avatar,
   });
 };

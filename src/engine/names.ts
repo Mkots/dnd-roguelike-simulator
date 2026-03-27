@@ -1,5 +1,3 @@
-import type { Creature } from "./types";
-
 const NAME_POOLS: Record<string, string[]> = {
   Goblin: ["Kajan", "Ilya", "Ilgiz", "Rem Zee", "Fak Hre Eew "],
   Wolf: ["Pes", "Dog", "Giant Balls", "Big Dog", "So Baka", "Zna Chen Ie"],
@@ -93,19 +91,15 @@ const buildAbsurdTitle = (): string => {
   }
 };
 
-export const randomizeEnemyNames = (enemies: Creature[]): Creature[] =>
-  enemies.map((enemy) => {
-    const pool = NAME_POOLS[enemy.name];
-    if (!pool) return enemy;
+export const generateEnemyName = (type: string): string => {
+  const pool = NAME_POOLS[type];
+  if (!pool) return type;
 
-    const baseName = pick(pool);
+  const baseName = pick(pool);
 
-    if (chance(0.1)) {
-      return { ...enemy, name: `${baseName} the ${enemy.name}` };
-    }
+  if (chance(0.1)) {
+    return `${baseName} the ${type}`;
+  }
 
-    return {
-      ...enemy,
-      name: `${baseName} ${buildAbsurdTitle()}`,
-    };
-  });
+  return `${baseName} ${buildAbsurdTitle()}`;
+};
