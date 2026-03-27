@@ -9,6 +9,7 @@ export type AbilityScores = {
 
 export type Creature = {
   name: string;
+  kind?: string; // enemy type key, used for avatar lookup (e.g. 'goblin', 'wolf')
   abilities: AbilityScores;
   maxHp: number;
   currentHp: number;

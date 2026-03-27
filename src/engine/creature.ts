@@ -11,6 +11,7 @@ type CreatureOptions = {
   attackAbility?: keyof AbilityScores;
   weaponDice?: string; // e.g. "1d6", "1d8"
   armorBonus?: number; // flat bonus to AC from armor (beyond 10 + DEX)
+  kind?: string;
 };
 
 export const createCreature = (
@@ -25,6 +26,7 @@ export const createCreature = (
     attackAbility = "strength",
     weaponDice = "1d6",
     armorBonus = 0,
+    kind,
   } = options;
 
   const conMod = abilityModifier(abilities.constitution);
@@ -38,6 +40,7 @@ export const createCreature = (
 
   return {
     name,
+    kind,
     abilities,
     maxHp,
     currentHp: maxHp,
