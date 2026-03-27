@@ -12,6 +12,7 @@ import { WEAPON_PROGRESSION } from '../engine/upgrades';
 
 export const DEFAULT_HERO_CONFIG: HeroConfig = {
   name: 'Hero',
+  kind: 'hero',
   baseAbilities: {
     strength:     14,
     dexterity:    12,

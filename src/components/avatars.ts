@@ -5,6 +5,7 @@ import skeleton from '@/assets/skeleton.png';
 import troll from '@/assets/troll.png';
 import ogre from '@/assets/ogre.png';
 import darkKnight from '@/assets/dark-knight.png';
+import hero from '@/assets/hero.png';
 
 export const AVATARS: Record<string, string> = {
   goblin,
@@ -14,4 +15,5 @@ export const AVATARS: Record<string, string> = {
   troll,
   ogre,
   'dark-knight': darkKnight,
+  hero,
 };
