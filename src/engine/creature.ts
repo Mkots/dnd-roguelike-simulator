@@ -41,6 +41,7 @@ export const createCreature = (
   return {
     name,
     kind,
+    avatarSeed: Math.random(),
     abilities,
     maxHp,
     currentHp: maxHp,

@@ -10,6 +10,7 @@ export type AbilityScores = {
 export type Creature = {
   name: string;
   kind?: string; // enemy type key, used for avatar lookup (e.g. 'goblin', 'wolf')
+  avatarSeed?: number; // stable random float [0,1) for picking from avatar pool
   abilities: AbilityScores;
   maxHp: number;
   currentHp: number;

@@ -1,26 +1,32 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Button } from '@/components/ui/button';
-import { FighterCard } from '@/components/FighterCard';
-import { CombatLog } from '@/components/CombatLog';
-import { useRunStore } from '@/store/runStore';
-import { useGameStore } from '@/store/gameStore';
-import { HEAL_AMOUNT } from '@/engine/types';
-import { GOLD_PER_KILL, getGoldMultiplier, calculateGoldPenalty } from '@/engine/shop';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { Button } from "@/components/ui/button";
+import { FighterCard } from "@/components/FighterCard";
+import { CombatLog } from "@/components/CombatLog";
+import { useRunStore } from "@/store/runStore";
+import { useGameStore } from "@/store/gameStore";
+import { HEAL_AMOUNT } from "@/engine/types";
+import {
+  GOLD_PER_KILL,
+  getGoldMultiplier,
+  calculateGoldPenalty,
+} from "@/engine/shop";
 
 const ROUND_INTERVAL_MS = 600;
 
 export default function GameScreen() {
   const navigate = useNavigate();
-  const { runLog, currentFightIndex, nextFight, applyHeal, exitEarly } = useRunStore();
-  const { collectRewards, playerState, spendHealCharge, getHero } = useGameStore();
+  const { runLog, currentFightIndex, nextFight, applyHeal, exitEarly } =
+    useRunStore();
+  const { collectRewards, playerState, spendHealCharge, getHero } =
+    useGameStore();
   const [anim, setAnim] = useState({ fightIndex: -1, rounds: 0 });
   const visibleRounds = anim.fightIndex === currentFightIndex ? anim.rounds : 0;
 
   const fight = runLog?.fights[currentFightIndex] ?? null;
 
   useEffect(() => {
-    if (!runLog) navigate('/', { replace: true });
+    if (!runLog) navigate("/", { replace: true });
   }, [runLog, navigate]);
 
   // Animate rounds; reset is handled inside the callback when fightIndex changes
@@ -47,13 +53,15 @@ export default function GameScreen() {
   const isLastFight = currentFightIndex === (runLog?.fights.length ?? 0) - 1;
 
   const roundIdx = Math.min(visibleRounds, fight.rounds.length);
-  const heroHp = roundIdx === 0
-    ? fight.hero.currentHp
-    : fight.rounds[roundIdx - 1].heroHpAfter;
+  const heroHp =
+    roundIdx === 0
+      ? fight.hero.currentHp
+      : fight.rounds[roundIdx - 1].heroHpAfter;
 
-  const enemyHp = roundIdx === 0
-    ? fight.enemy.currentHp
-    : fight.rounds[roundIdx - 1].enemyHpAfter;
+  const enemyHp =
+    roundIdx === 0
+      ? fight.enemy.currentHp
+      : fight.rounds[roundIdx - 1].enemyHpAfter;
 
   const handleHeal = () => {
     const used = spendHealCharge();
@@ -65,35 +73,60 @@ export default function GameScreen() {
   const handleLeaveRun = () => {
     const enemiesDefeated = runLog!.enemiesDefeated;
     exitEarly();
-    collectRewards(enemiesDefeated, 'early-exit');
-    navigate('/results', { state: { enemiesDefeated, exitType: 'early-exit', goldPenalty: 0 } });
+    collectRewards(enemiesDefeated, "early-exit");
+    navigate("/results", {
+      state: { enemiesDefeated, exitType: "early-exit", goldPenalty: 0 },
+    });
   };
 
   const handleContinue = () => {
-    if (!isLastFight && fight.winner === 'hero') {
+    if (!isLastFight && fight.winner === "hero") {
       nextFight();
     } else {
       const enemiesDefeated = runLog!.enemiesDefeated;
-      const exitType = runLog!.survived ? 'survived' : 'died';
+      const exitType = runLog!.survived ? "survived" : "died";
       const multiplier = getGoldMultiplier(playerState.purchasedUpgrades);
-      const goldEarned = Math.round(enemiesDefeated * GOLD_PER_KILL * multiplier);
-      const goldPenalty = calculateGoldPenalty(playerState.gold + goldEarned, exitType);
+      const goldEarned = Math.round(
+        enemiesDefeated * GOLD_PER_KILL * multiplier,
+      );
+      const goldPenalty = calculateGoldPenalty(
+        playerState.gold + goldEarned,
+        exitType,
+      );
       collectRewards(enemiesDefeated, exitType);
-      navigate('/results', { state: { enemiesDefeated, exitType, goldPenalty } });
+      navigate("/results", {
+        state: { enemiesDefeated, exitType, goldPenalty },
+      });
     }
   };
 
-  const showBetweenFightActions = animationDone && fight.winner === 'hero' && !isLastFight;
-  const showEndActions = animationDone && (fight.winner === 'enemy' || isLastFight);
+  const showBetweenFightActions =
+    animationDone && fight.winner === "hero" && !isLastFight;
+  const showEndActions =
+    animationDone && (fight.winner === "enemy" || isLastFight);
+
+  console.log(playerState);
 
   return (
     <div className="min-h-screen flex flex-col items-center gap-8 px-4 py-10 max-w-lg mx-auto">
-
       {/* Fighters */}
       <div className="flex items-center gap-4 w-full">
-        <FighterCard name={fight.hero.name} kind={fight.hero.kind} currentHp={heroHp} maxHp={fight.hero.maxHp} isHero />
+        <FighterCard
+          name={fight.hero.name}
+          kind={fight.hero.kind}
+          avatarSeed={fight.hero.avatarSeed}
+          currentHp={heroHp}
+          maxHp={fight.hero.maxHp}
+          isHero
+        />
         <span className="text-muted-foreground font-bold shrink-0">VS</span>
-        <FighterCard name={fight.enemy.name} kind={fight.enemy.kind} currentHp={Math.max(0, enemyHp)} maxHp={fight.enemy.maxHp} />
+        <FighterCard
+          name={fight.enemy.name}
+          kind={fight.enemy.kind}
+          avatarSeed={fight.enemy.avatarSeed}
+          currentHp={Math.max(0, enemyHp)}
+          maxHp={fight.enemy.maxHp}
+        />
       </div>
 
       {/* Combat log */}
@@ -125,7 +158,6 @@ export default function GameScreen() {
           See Results
         </Button>
       )}
-
     </div>
   );
 }
