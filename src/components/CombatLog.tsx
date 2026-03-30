@@ -62,12 +62,9 @@ function ActionLine({
     action.modifier >= 0 ? `+${action.modifier}` : `${action.modifier}`;
 
   if (action.type === "hit") {
-    const dmgMod =
-      action.damageModifier !== 0
-        ? action.damageModifier > 0
-          ? `+${action.damageModifier}`
-          : `${action.damageModifier}`
-        : "";
+    let dmgMod = "";
+    if (action.damageModifier > 0) dmgMod = `+${action.damageModifier}`;
+    else if (action.damageModifier < 0) dmgMod = `${action.damageModifier}`;
     return (
       <p className="text-green-400">
         {label}: (1d20{atkMod}) {action.roll}

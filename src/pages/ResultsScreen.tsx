@@ -29,15 +29,18 @@ export default function ResultsScreen() {
   const goldEarned = Math.round(enemiesDefeated * GOLD_PER_KILL * multiplier);
   const totalEnemies = ENEMY_COUNT;
 
-  const heading =
-    exitType === 'survived' ? 'Victory!' :
-    exitType === 'early-exit' ? 'Safe Exit' :
-    'Defeated';
-
-  const subtext =
-    exitType === 'survived' ? 'You cleared all enemies!' :
-    exitType === 'early-exit' ? 'You left with your gold intact.' :
-    'Better luck next time.';
+  const headingMap: Record<typeof exitType, string> = {
+    survived: 'Victory!',
+    'early-exit': 'Safe Exit',
+    died: 'Defeated',
+  };
+  const subtextMap: Record<typeof exitType, string> = {
+    survived: 'You cleared all enemies!',
+    'early-exit': 'You left with your gold intact.',
+    died: 'Better luck next time.',
+  };
+  const heading = headingMap[exitType];
+  const subtext = subtextMap[exitType];
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-8 px-4">
