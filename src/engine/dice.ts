@@ -14,9 +14,9 @@ export const rollFormula = (formula: string, rng: () => number = Math.random): R
   const match = formula.trim().match(/^(\d+)d(\d+)([+-]\d+)?$/i);
   if (!match) throw new Error(`Invalid dice formula: "${formula}"`);
 
-  const count = parseInt(match[1]);
-  const sides = parseInt(match[2]);
-  const modifier = match[3] ? parseInt(match[3]) : 0;
+  const count = Number.parseInt(match[1]);
+  const sides = Number.parseInt(match[2]);
+  const modifier = match[3] ? Number.parseInt(match[3]) : 0;
 
   let diceRoll = 0;
   for (let i = 0; i < count; i++) {
