@@ -17,4 +17,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  test: {
+    environment: "node",
+    coverage: {
+      provider: "v8",
+      reporter: ["lcov", "text"],
+      include: ["src/**/*.ts", "src/**/*.tsx"],
+      exclude: ["src/components/ui/**"],
+    },
+  },
 });
