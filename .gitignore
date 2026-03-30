@@ -12,6 +12,7 @@ dist
 dist-ssr
 coverage
 playwright-report
+playwright/.cache
 test-results
 *.local
 
