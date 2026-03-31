@@ -56,7 +56,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
       ...newTailFights,
     ];
 
-    const lastFight = newFights.at(-1);
+    const lastFight = newFights.at(-1)!;
     const survived = lastFight.winner === 'hero';
 
     set({
