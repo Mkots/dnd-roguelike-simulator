@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/experimental-ct-react';
+import { test, expect } from './fixtures';
 import { FighterCard } from '../../src/components/FighterCard';
 
 test('renders hero card with correct name and HP', async ({ mount }) => {

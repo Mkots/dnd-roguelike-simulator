@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/experimental-ct-react';
+import { test, expect } from './fixtures';
 import { GameTitle } from '../../src/components/GameTitle';
 
 test('renders the game title', async ({ mount }) => {
