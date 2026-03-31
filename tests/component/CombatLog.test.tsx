@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/experimental-ct-react';
+import { test, expect } from './fixtures';
 import { CombatLog } from '../../src/components/CombatLog';
 import type { CombatRound } from '../../src/engine/types';
 

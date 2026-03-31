@@ -20,6 +20,8 @@ jobs:
 
       - run: npm ci
       - run: npm run test:coverage
+      - run: npx playwright install chromium --with-deps
+      - run: npm run test:ct:coverage
 
       - uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
         env:

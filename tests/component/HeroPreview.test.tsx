@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/experimental-ct-react';
+import { test, expect } from './fixtures';
 import { HeroPreview } from '../../src/components/HeroPreview';
 import type { Creature } from '../../src/engine/types';
 

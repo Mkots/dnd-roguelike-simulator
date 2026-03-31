@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/experimental-ct-react';
+import { test, expect } from './fixtures';
 import { PlayerStats } from '../../src/components/PlayerStats';
 import type { PlayerState } from '../../src/engine/types';
 
