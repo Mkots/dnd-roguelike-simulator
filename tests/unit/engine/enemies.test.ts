@@ -51,7 +51,7 @@ describe('createEnemies', () => {
   it('last enemy has highest armor class (dark knight)', () => {
     // Arrange & Act
     const enemies = createEnemies();
-    const lastAC = enemies[enemies.length - 1].armorClass;
+    const lastAC = enemies.at(-1).armorClass;
 
     // Assert — dark knight has the highest AC of all enemies
     enemies.slice(0, -1).forEach(e => {

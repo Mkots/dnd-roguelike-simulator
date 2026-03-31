@@ -44,7 +44,7 @@ export default function ShopScreen() {
   );
 }
 
-function UpgradeCard({ item, onBuy }: { item: ShopItem; onBuy: () => void }) {
+function UpgradeCard({ item, onBuy }: Readonly<{ item: ShopItem; onBuy: () => void }>) {
   const maxed = item.cost === null;
 
   return (
@@ -77,12 +77,12 @@ function HealChargeCard({
   cost,
   affordable,
   onBuy,
-}: {
+}: Readonly<{
   charges: number;
   cost: number;
   affordable: boolean;
   onBuy: () => void;
-}) {
+}>) {
   return (
     <div className="flex items-center justify-between gap-4 border border-border rounded-lg p-4">
       <div className="flex flex-col gap-0.5 min-w-0">

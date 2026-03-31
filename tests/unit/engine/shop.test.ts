@@ -57,7 +57,7 @@ describe('createInitialPlayerState', () => {
 
 describe('getGoldMultiplier', () => {
   it.each([
-    { levels: 0, expected: 1.0 },
+    { levels: 0, expected: 1 },
     { levels: 1, expected: 1.1 },
     { levels: 3, expected: 1.3 },
     { levels: 5, expected: 1.5 },
@@ -409,7 +409,7 @@ describe('buildHero', () => {
     const hero = buildHero(config, state);
 
     // Assert
-    const maxWeapon = WEAPON_PROGRESSION[WEAPON_PROGRESSION.length - 1];
+    const maxWeapon = WEAPON_PROGRESSION.at(-1);
     expect(hero.damageFormula).toContain(maxWeapon);
   });
 

@@ -3,7 +3,7 @@ import type { Creature } from "@/engine/types";
 import { abilityModifier } from "@/engine/creature";
 import { getAvatar } from "./avatars";
 
-export function HeroPreview({ hero }: { hero: Creature }) {
+export function HeroPreview({ hero }: Readonly<{ hero: Creature }>) {
   const avatar = getAvatar(hero.kind, hero.avatarSeed);
 
   return (
@@ -67,11 +67,11 @@ function Stat({
   icon,
   label,
   value,
-}: {
+}: Readonly<{
   icon: React.ReactNode;
   label: string;
   value: string;
-}) {
+}>) {
   return (
     <div className="flex items-center gap-2">
       {icon}
@@ -81,7 +81,7 @@ function Stat({
   );
 }
 
-function AbilityScore({ label, score }: { label: string; score: number }) {
+function AbilityScore({ label, score }: Readonly<{ label: string; score: number }>) {
   const mod = abilityModifier(score);
   return (
     <div className="flex flex-col items-center gap-0.5 border border-border rounded-lg py-1.5">

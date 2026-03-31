@@ -79,7 +79,7 @@ export default function ResultsScreen() {
   );
 }
 
-function ResultRow({ label, value, highlight }: { label: string; value: string; highlight?: 'red' }) {
+function ResultRow({ label, value, highlight }: Readonly<{ label: string; value: string; highlight?: 'red' }>) {
   return (
     <div className="flex justify-between items-center border-b border-border pb-2">
       <span className="text-muted-foreground text-sm">{label}</span>

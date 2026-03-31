@@ -11,7 +11,7 @@ type RollResult = {
 
 // Parses and rolls dice formulas: "1d6", "2d8+3", "1d4-1"
 export const rollFormula = (formula: string, rng: () => number = Math.random): RollResult => {
-  const match = formula.trim().match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+  const match = /^(\d+)d(\d+)([+-]\d+)?$/i.exec(formula.trim());
   if (!match) throw new Error(`Invalid dice formula: "${formula}"`);
 
   const count = Number.parseInt(match[1]);

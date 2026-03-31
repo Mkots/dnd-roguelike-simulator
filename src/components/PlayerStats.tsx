@@ -1,7 +1,7 @@
 import { Coins, Trophy, Zap } from 'lucide-react';
 import type { PlayerState } from '@/engine/types';
 
-export function PlayerStats({ playerState }: { playerState: PlayerState }) {
+export function PlayerStats({ playerState }: Readonly<{ playerState: PlayerState }>) {
   return (
     <div className="flex gap-6 text-sm">
       <Stat icon={<Coins className="size-4 text-yellow-400" />} label="Gold" value={playerState.gold} />
@@ -11,7 +11,7 @@ export function PlayerStats({ playerState }: { playerState: PlayerState }) {
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+function Stat({ icon, label, value }: Readonly<{ icon: React.ReactNode; label: string; value: number }>) {
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="flex items-center gap-1 text-muted-foreground">
