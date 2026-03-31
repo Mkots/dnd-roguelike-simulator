@@ -35,6 +35,38 @@ const resolveAttack = (
   return { type: "miss", roll, modifier, total, targetAC: target.armorClass };
 };
 
+interface RoundResult {
+  heroAction: AttackAction | MissAction | null;
+  enemyAction: AttackAction | MissAction | null;
+  heroHp: number;
+  enemyHp: number;
+}
+
+const resolveRound = (
+  hero: Creature,
+  enemy: Creature,
+  heroFirst: boolean,
+  heroHp: number,
+  enemyHp: number,
+): RoundResult => {
+  const [first, second] = heroFirst ? [hero, enemy] : [enemy, hero];
+  let firstHp = heroFirst ? heroHp : enemyHp;
+  let secondHp = heroFirst ? enemyHp : heroHp;
+
+  const firstAction = resolveAttack(first, second);
+  if (firstAction.type === "hit") secondHp -= firstAction.damage;
+
+  const secondAction = secondHp > 0 ? resolveAttack(second, first) : null;
+  if (secondAction?.type === "hit") firstHp -= secondAction.damage;
+
+  return {
+    heroAction: heroFirst ? firstAction : secondAction,
+    enemyAction: heroFirst ? secondAction : firstAction,
+    heroHp: heroFirst ? firstHp : secondHp,
+    enemyHp: heroFirst ? secondHp : firstHp,
+  };
+};
+
 export const fight = (hero: Creature, enemy: Creature): FightLog => {
   const heroInit = d20() + abilityModifier(hero.abilities.dexterity);
   const enemyInit = d20() + abilityModifier(enemy.abilities.dexterity);
@@ -47,36 +79,14 @@ export const fight = (hero: Creature, enemy: Creature): FightLog => {
 
   while (heroHp > 0 && enemyHp > 0) {
     roundNum++;
-    let heroAction: AttackAction | MissAction | null;
-    let enemyAction: AttackAction | MissAction | null;
-
-    if (heroFirst) {
-      heroAction = resolveAttack(hero, enemy);
-      if (heroAction.type === "hit") enemyHp -= heroAction.damage;
-
-      if (enemyHp > 0) {
-        enemyAction = resolveAttack(enemy, hero);
-        if (enemyAction.type === "hit") heroHp -= enemyAction.damage;
-      } else {
-        enemyAction = null;
-      }
-    } else {
-      enemyAction = resolveAttack(enemy, hero);
-      if (enemyAction.type === "hit") heroHp -= enemyAction.damage;
-
-      if (heroHp > 0) {
-        heroAction = resolveAttack(hero, enemy);
-        if (heroAction.type === "hit") enemyHp -= heroAction.damage;
-      } else {
-        heroAction = null;
-      }
-    }
-
+    const result = resolveRound(hero, enemy, heroFirst, heroHp, enemyHp);
+    heroHp = result.heroHp;
+    enemyHp = result.enemyHp;
     rounds.push({
       round: roundNum,
       firstAttacker: heroFirst ? "hero" : "enemy",
-      heroAction,
-      enemyAction,
+      heroAction: result.heroAction,
+      enemyAction: result.enemyAction,
       heroHpAfter: heroHp,
       enemyHpAfter: enemyHp,
     });
