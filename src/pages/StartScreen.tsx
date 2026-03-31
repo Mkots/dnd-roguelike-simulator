@@ -20,19 +20,37 @@ export default function StartScreen() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-10 px-4">
-      <GameTitle />
-      <PlayerStats playerState={playerState} />
-      <HeroPreview hero={hero} />
-      <Button size="lg" className="px-10 text-base h-11" onClick={handleStart}>
-        Start Run
-      </Button>
-      <Button variant="outline" size="sm" onClick={() => navigate('/shop')}>
-        Shop
-      </Button>
-      <Button variant="outline" size="sm" onClick={resetProgress}>
-        Reset Progress
-      </Button>
+    <div className="flex flex-col h-dvh max-w-[480px] mx-auto">
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto flex flex-col items-center gap-6 px-4 pt-8 pb-4">
+        <GameTitle />
+        <PlayerStats playerState={playerState} />
+        <HeroPreview hero={hero} />
+        <button
+          onClick={resetProgress}
+          className="mt-auto text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
+        >
+          Reset Progress
+        </button>
+      </div>
+
+      {/* Fixed bottom actions */}
+      <div className="shrink-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex flex-col gap-2">
+        <Button
+          size="lg"
+          className="w-full h-12 text-base font-semibold"
+          onClick={handleStart}
+        >
+          Start Run
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full h-11"
+          onClick={() => navigate('/shop')}
+        >
+          Shop
+        </Button>
+      </div>
     </div>
   );
 }

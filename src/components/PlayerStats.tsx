@@ -3,22 +3,36 @@ import type { PlayerState } from '@/engine/types';
 
 export function PlayerStats({ playerState }: Readonly<{ playerState: PlayerState }>) {
   return (
-    <div className="flex gap-6 text-sm">
-      <Stat icon={<Coins className="size-4 text-yellow-400" />} label="Gold" value={playerState.gold} />
-      <Stat icon={<Trophy className="size-4 text-amber-400" />} label="Best run" value={playerState.bestRun} />
-      <Stat icon={<Zap className="size-4 text-muted-foreground" />} label="Runs" value={playerState.totalRuns} />
+    <div className="flex gap-2 justify-center flex-wrap">
+      <StatChip
+        icon={<Coins className="size-3.5 text-primary" />}
+        label="Gold"
+        value={playerState.gold}
+      />
+      <StatChip
+        icon={<Trophy className="size-3.5 text-amber-400" />}
+        label="Best"
+        value={playerState.bestRun}
+      />
+      <StatChip
+        icon={<Zap className="size-3.5 text-muted-foreground" />}
+        label="Runs"
+        value={playerState.totalRuns}
+      />
     </div>
   );
 }
 
-function Stat({ icon, label, value }: Readonly<{ icon: React.ReactNode; label: string; value: number }>) {
+function StatChip({
+  icon,
+  label,
+  value,
+}: Readonly<{ icon: React.ReactNode; label: string; value: number }>) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="flex items-center gap-1 text-muted-foreground">
-        {icon}
-        <span className="text-xs uppercase tracking-wide">{label}</span>
-      </div>
-      <span className="text-xl font-semibold">{value}</span>
+    <div className="flex items-center gap-1.5 bg-card border border-border rounded-full px-3 py-1.5">
+      {icon}
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-sm font-semibold font-mono tabular-nums">{value}</span>
     </div>
   );
 }

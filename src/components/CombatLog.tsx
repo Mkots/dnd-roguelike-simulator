@@ -14,7 +14,7 @@ export function CombatLog({ rounds, visibleCount }: Props) {
   }, [visibleCount]);
 
   return (
-    <div className="w-full max-w-lg h-72 overflow-y-auto border border-border rounded-xl p-4 bg-card space-y-3 font-mono text-sm">
+    <div className="w-full h-full overflow-y-auto rounded-xl p-3 bg-black/40 border border-border/50 space-y-2.5 font-mono text-xs">
       {rounds.slice(0, visibleCount).map((round) => (
         <RoundEntry key={round.round} round={round} />
       ))}
@@ -33,8 +33,8 @@ function RoundEntry({ round }: Readonly<{ round: CombatRound }>) {
 
   return (
     <div>
-      <p className="text-muted-foreground text-xs mb-1">
-        — Round {round.round}. The first attacker was {round.firstAttacker} —
+      <p className="text-muted-foreground/70 text-[10px] mb-0.5 uppercase tracking-wide">
+        — Round {round.round}. First: {round.firstAttacker} —
       </p>
       {round.firstAttacker === "hero" ? (
         <>
@@ -66,7 +66,7 @@ function ActionLine({
     if (action.damageModifier > 0) dmgMod = `+${action.damageModifier}`;
     else if (action.damageModifier < 0) dmgMod = `${action.damageModifier}`;
     return (
-      <p className="text-green-400">
+      <p className="text-green-400 leading-relaxed">
         {label}: (1d20{atkMod}) {action.roll}
         {atkMod}={action.total} vs AC {action.targetAC} → HIT (
         {action.damageFormula}) {action.damageRoll}
@@ -75,7 +75,7 @@ function ActionLine({
     );
   }
   return (
-    <p className="text-muted-foreground">
+    <p className="text-muted-foreground leading-relaxed">
       {label}: (1d20{atkMod}) {action.roll}
       {atkMod}={action.total} vs AC {action.targetAC} → miss
     </p>

@@ -29,7 +29,7 @@ export function FighterCard({
 
   return (
     <div
-      className="relative flex-1 border border-border rounded-xl overflow-hidden bg-card bg-cover"
+      className="relative flex-1 rounded-xl overflow-hidden bg-card bg-cover bg-center"
       data-testid={testIdPrefix}
       style={
         avatar
@@ -40,19 +40,22 @@ export function FighterCard({
           : undefined
       }
     >
+      {/* gradient overlay */}
+      <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+
       <div
         data-testid={`${testIdPrefix}-details`}
-        className="absolute inset-x-0 bottom-0 bg-card/30 backdrop-blur-xs p-3"
+        className="absolute inset-x-0 bottom-0 p-2.5"
       >
         <p
           data-testid={`${testIdPrefix}-name`}
-          className="text-sm font-semibold mb-2"
+          className="text-xs font-semibold mb-1.5 text-white leading-tight truncate"
         >
           {name}
         </p>
         <div
           data-testid={`${testIdPrefix}-hp`}
-          className="h-2 bg-muted rounded-full overflow-hidden mb-1"
+          className="h-1.5 bg-white/20 rounded-full overflow-hidden mb-1"
         >
           <div
             className={cn("h-full rounded-full transition-all duration-300", hpBarColor)}
@@ -61,13 +64,13 @@ export function FighterCard({
         </div>
         <p
           data-testid={`${testIdPrefix}-hp-text`}
-          className="text-xs text-muted-foreground font-mono"
+          className="text-[10px] text-white/60 font-mono tabular-nums"
         >
           {Math.max(0, currentHp)} / {maxHp} HP
         </p>
       </div>
       {/* Spacer to give height for the background image */}
-      <div className="h-64" />
+      <div className="h-44" />
     </div>
   );
 }

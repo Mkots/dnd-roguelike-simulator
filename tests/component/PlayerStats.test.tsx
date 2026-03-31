@@ -27,8 +27,8 @@ test('renders stat labels', async ({ mount }) => {
   );
 
   await expect(component.getByText(/gold/i)).toBeVisible();
-  await expect(component.getByText(/best run/i)).toBeVisible();
-  await expect(component.getByText(/runs/i)).toBeVisible();
+  await expect(component.getByText(/^best$/i)).toBeVisible();
+  await expect(component.getByText(/^runs$/i)).toBeVisible();
 });
 
 test('shows zero values when player state is empty', async ({ mount }) => {
