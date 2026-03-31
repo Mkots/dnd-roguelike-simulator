@@ -105,59 +105,94 @@ export default function GameScreen() {
   const showEndActions =
     animationDone && (fight.winner === "enemy" || isLastFight);
 
-  console.log(playerState);
+  const enemyIndex = currentFightIndex + 1;
+  const totalEnemies = runLog?.fights.length ?? 0;
 
   return (
-    <div className="min-h-screen flex flex-col items-center gap-8 px-4 py-10 max-w-lg mx-auto">
-      {/* Fighters */}
-      <div className="flex items-center gap-4 w-full">
-        <FighterCard
-          name={fight.hero.name}
-          kind={fight.hero.kind}
-          avatarSeed={fight.hero.avatarSeed}
-          currentHp={heroHp}
-          maxHp={fight.hero.maxHp}
-          isHero
-        />
-        <span className="text-muted-foreground font-bold shrink-0">VS</span>
-        <FighterCard
-          name={fight.enemy.name}
-          kind={fight.enemy.kind}
-          avatarSeed={fight.enemy.avatarSeed}
-          currentHp={Math.max(0, enemyHp)}
-          maxHp={fight.enemy.maxHp}
-        />
+    <div className="flex flex-col h-dvh max-w-[480px] mx-auto">
+      {/* Fighter cards — always visible, never scrolls away */}
+      <div className="shrink-0 px-4 pt-4 pb-2">
+        <div className="flex items-center gap-1 mb-2 text-xs text-muted-foreground">
+          <span className="text-primary font-semibold">Enemy {enemyIndex}</span>
+          <span>/ {totalEnemies}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <FighterCard
+            name={fight.hero.name}
+            kind={fight.hero.kind}
+            avatarSeed={fight.hero.avatarSeed}
+            currentHp={heroHp}
+            maxHp={fight.hero.maxHp}
+            isHero
+          />
+          <span className="text-muted-foreground font-bold text-sm shrink-0">VS</span>
+          <FighterCard
+            name={fight.enemy.name}
+            kind={fight.enemy.kind}
+            avatarSeed={fight.enemy.avatarSeed}
+            currentHp={Math.max(0, enemyHp)}
+            maxHp={fight.enemy.maxHp}
+          />
+        </div>
       </div>
 
-      {/* Combat log */}
-      <CombatLog rounds={fight.rounds} visibleCount={visibleRounds} />
+      {/* Combat log — fills remaining space, scrolls internally */}
+      <div className="flex-1 overflow-hidden px-4 py-2">
+        <CombatLog rounds={fight.rounds} visibleCount={visibleRounds} />
+      </div>
 
-      {/* Between-fight actions: Heal, Leave Run, Next Enemy */}
-      {showBetweenFightActions && (
-        <div className="flex flex-col gap-3 w-full max-w-xs">
+      {/* Fixed bottom actions */}
+      <div className="shrink-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
+        {showBetweenFightActions && (
+          <div className="flex flex-col gap-2">
+            <Button
+              size="lg"
+              className="w-full h-12 text-base font-semibold"
+              onClick={handleContinue}
+            >
+              Next Enemy
+              <span className="text-xs font-normal ml-2 opacity-70">
+                risk: death = −20% gold
+              </span>
+            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 h-11"
+                onClick={handleHeal}
+                disabled={playerState.healCharges === 0}
+              >
+                Heal +{HEAL_AMOUNT} HP [{playerState.healCharges}]
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 h-11"
+                onClick={handleLeaveRun}
+              >
+                Safe Exit
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {showEndActions && (
           <Button
             size="lg"
-            variant="outline"
-            onClick={handleHeal}
-            disabled={playerState.healCharges === 0}
+            className="w-full h-12 text-base font-semibold"
+            onClick={handleContinue}
           >
-            Heal (+{HEAL_AMOUNT} HP) [{playerState.healCharges}]
+            See Results
           </Button>
-          <Button size="lg" variant="outline" onClick={handleLeaveRun}>
-            Leave Run (safe)
-          </Button>
-          <Button size="lg" onClick={handleContinue}>
-            Next Enemy → ⚠ Risk: death = −20% gold
-          </Button>
-        </div>
-      )}
+        )}
 
-      {/* End-of-run action */}
-      {showEndActions && (
-        <Button size="lg" onClick={handleContinue}>
-          See Results
-        </Button>
-      )}
+        {!showBetweenFightActions && !showEndActions && (
+          <div className="h-12 flex items-center justify-center">
+            <span className="text-muted-foreground text-sm animate-pulse">
+              Battle in progress...
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
