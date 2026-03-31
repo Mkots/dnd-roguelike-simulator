@@ -1,8 +1,6 @@
 import { defineConfig, devices } from '@playwright/experimental-ct-react';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import istanbul from 'vite-plugin-istanbul';
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
@@ -22,9 +20,6 @@ export default defineConfig({
           '@': path.resolve(__dirname, './src'),
         },
       },
-      plugins: process.env.COVERAGE
-        ? [istanbul({ include: 'src/**', exclude: ['node_modules/**', 'src/components/ui/**'] })]
-        : [],
     },
   },
   projects: [
