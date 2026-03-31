@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import type { CombatRound, AttackAction, MissAction } from "@/engine/types";
 
-type Props = {
+type Props = Readonly<{
   rounds: CombatRound[];
   visibleCount: number;
-};
+}>;
 
 export function CombatLog({ rounds, visibleCount }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -23,7 +23,7 @@ export function CombatLog({ rounds, visibleCount }: Props) {
   );
 }
 
-function RoundEntry({ round }: { round: CombatRound }) {
+function RoundEntry({ round }: Readonly<{ round: CombatRound }>) {
   const heroLine = round.heroAction && (
     <ActionLine action={round.heroAction} label="Hero" />
   );
@@ -54,10 +54,10 @@ function RoundEntry({ round }: { round: CombatRound }) {
 function ActionLine({
   action,
   label,
-}: {
+}: Readonly<{
   action: AttackAction | MissAction;
   label: string;
-}) {
+}>) {
   const atkMod =
     action.modifier >= 0 ? `+${action.modifier}` : `${action.modifier}`;
 

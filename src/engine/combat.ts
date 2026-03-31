@@ -106,7 +106,7 @@ export const simulateRun = (hero: Creature, enemies: Creature[]): RunLog => {
     currentHero = { ...currentHero, currentHp: result.heroFinalHp };
   }
 
-  const lastFight = fights[fights.length - 1];
+  const lastFight = fights.at(-1)!;
   const survived = lastFight.winner === 'hero';
 
   return {

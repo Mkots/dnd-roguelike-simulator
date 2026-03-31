@@ -15,7 +15,7 @@ const dirs = fs
 
 for (const dir of dirs) {
   const dirPath = path.join(ASSETS_DIR, dir);
-  const pattern = new RegExp(`^${dir}_\\d+\\.[a-zA-Z]+$`);
+  const pattern = new RegExp(String.raw`^${dir}_\d+\.[a-zA-Z]+$`);
 
   const files = fs
     .readdirSync(dirPath, { withFileTypes: true })

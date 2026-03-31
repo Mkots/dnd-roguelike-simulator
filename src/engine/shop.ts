@@ -1,10 +1,16 @@
-import type { AbilityScores, Creature, PlayerState, ShopItem, ShopResult } from './types';
-import { createCreature } from './creature';
-import { UPGRADES, WEAPON_PROGRESSION } from './upgrades';
+import type {
+  AbilityScores,
+  Creature,
+  PlayerState,
+  ShopItem,
+  ShopResult,
+} from "./types";
+import { createCreature } from "./creature";
+import { UPGRADES, WEAPON_PROGRESSION } from "./upgrades";
 
 export const GOLD_PER_KILL = 2;
 export const HEAL_CHARGE_COST = 10;
-export const DEATH_PENALTY_PERCENT = 0.20;
+export const DEATH_PENALTY_PERCENT = 0.2;
 const GOLD_MULTIPLIER_INCREMENT = 0.1;
 
 export const createInitialPlayerState = (): PlayerState => ({
@@ -18,17 +24,19 @@ export const createInitialPlayerState = (): PlayerState => ({
 const upgradeCost = (costPerLevel: number, currentLevel: number): number =>
   costPerLevel * (currentLevel + 1);
 
-export const getGoldMultiplier = (purchasedUpgrades: Record<string, number>): number =>
-  1 + (purchasedUpgrades['gold-multiplier'] ?? 0) * GOLD_MULTIPLIER_INCREMENT;
+export const getGoldMultiplier = (
+  purchasedUpgrades: Record<string, number>,
+): number =>
+  1 + (purchasedUpgrades["gold-multiplier"] ?? 0) * GOLD_MULTIPLIER_INCREMENT;
 
 export const calculateGoldPenalty = (
   totalGold: number,
-  exitType: 'survived' | 'died' | 'early-exit'
+  exitType: "survived" | "died" | "early-exit",
 ): number =>
-  exitType === 'died' ? Math.floor(totalGold * DEATH_PENALTY_PERCENT) : 0;
+  exitType === "died" ? Math.floor(totalGold * DEATH_PENALTY_PERCENT) : 0;
 
 export const getShopItems = (playerState: PlayerState): ShopItem[] =>
-  UPGRADES.map(u => {
+  UPGRADES.map((u) => {
     const currentLevel = playerState.purchasedUpgrades[u.id] ?? 0;
     const maxed = currentLevel >= u.maxLevel;
     const cost = maxed ? null : upgradeCost(u.costPerLevel, currentLevel);
@@ -40,17 +48,25 @@ export const getShopItems = (playerState: PlayerState): ShopItem[] =>
     };
   });
 
-export const purchase = (playerState: PlayerState, upgradeId: string): ShopResult => {
-  const upgrade = UPGRADES.find(u => u.id === upgradeId);
-  if (!upgrade) return { success: false, reason: 'Unknown upgrade', playerState };
+export const purchase = (
+  playerState: PlayerState,
+  upgradeId: string,
+): ShopResult => {
+  const upgrade = UPGRADES.find((u) => u.id === upgradeId);
+  if (!upgrade)
+    return { success: false, reason: "Unknown upgrade", playerState };
 
   const currentLevel = playerState.purchasedUpgrades[upgradeId] ?? 0;
   if (currentLevel >= upgrade.maxLevel)
-    return { success: false, reason: 'Already at max level', playerState };
+    return { success: false, reason: "Already at max level", playerState };
 
   const cost = upgradeCost(upgrade.costPerLevel, currentLevel);
   if (playerState.gold < cost)
-    return { success: false, reason: `Need ${cost} gold, have ${playerState.gold}`, playerState };
+    return {
+      success: false,
+      reason: `Need ${cost} gold, have ${playerState.gold}`,
+      playerState,
+    };
 
   return {
     success: true,
@@ -67,7 +83,11 @@ export const purchase = (playerState: PlayerState, upgradeId: string): ShopResul
 
 export const buyHealCharge = (playerState: PlayerState): ShopResult => {
   if (playerState.gold < HEAL_CHARGE_COST)
-    return { success: false, reason: `Need ${HEAL_CHARGE_COST} gold, have ${playerState.gold}`, playerState };
+    return {
+      success: false,
+      reason: `Need ${HEAL_CHARGE_COST} gold, have ${playerState.gold}`,
+      playerState,
+    };
 
   return {
     success: true,
@@ -82,7 +102,7 @@ export const buyHealCharge = (playerState: PlayerState): ShopResult => {
 export const collectRunRewards = (
   playerState: PlayerState,
   enemiesDefeated: number,
-  exitType: 'survived' | 'died' | 'early-exit' = 'survived'
+  exitType: "survived" | "died" | "early-exit" = "survived",
 ): PlayerState => {
   const multiplier = getGoldMultiplier(playerState.purchasedUpgrades);
   const goldEarned = Math.round(enemiesDefeated * GOLD_PER_KILL * multiplier);
@@ -108,28 +128,34 @@ export type HeroConfig = {
   baseWeaponDice?: (typeof WEAPON_PROGRESSION)[number];
 };
 
-export const buildHero = (config: HeroConfig, playerState: PlayerState): Creature => {
+export const buildHero = (
+  config: HeroConfig,
+  playerState: PlayerState,
+): Creature => {
   const u = playerState.purchasedUpgrades;
 
   const abilities: AbilityScores = {
-    strength:     config.baseAbilities.strength     + (u['strength']     ?? 0),
-    dexterity:    config.baseAbilities.dexterity    + (u['dexterity']    ?? 0),
-    constitution: config.baseAbilities.constitution + (u['constitution'] ?? 0),
+    strength: config.baseAbilities.strength + (u["strength"] ?? 0),
+    dexterity: config.baseAbilities.dexterity + (u["dexterity"] ?? 0),
+    constitution: config.baseAbilities.constitution + (u["constitution"] ?? 0),
     intelligence: config.baseAbilities.intelligence,
-    wisdom:       config.baseAbilities.wisdom,
-    charisma:     config.baseAbilities.charisma,
+    wisdom: config.baseAbilities.wisdom,
+    charisma: config.baseAbilities.charisma,
   };
 
-  const baseWeapon = config.baseWeaponDice ?? '1d6';
+  const baseWeapon = config.baseWeaponDice ?? "1d6";
   const baseIndex = WEAPON_PROGRESSION.indexOf(baseWeapon);
-  const weaponIndex = Math.min(baseIndex + (u['weapon'] ?? 0), WEAPON_PROGRESSION.length - 1);
+  const weaponIndex = Math.min(
+    baseIndex + (u["weapon"] ?? 0),
+    WEAPON_PROGRESSION.length - 1,
+  );
 
   return createCreature(config.name, abilities, {
     hitDie: config.hitDie ?? 10,
-    attackAbility: config.attackAbility ?? 'strength',
+    attackAbility: config.attackAbility ?? "strength",
     weaponDice: WEAPON_PROGRESSION[weaponIndex],
-    armorBonus: u['armor'] ?? 0,
-    proficiencyBonus: 2 + (u['proficiency'] ?? 0),
+    armorBonus: u["armor"] ?? 0,
+    proficiencyBonus: 2 + (u["proficiency"] ?? 0),
     kind: config.kind,
   });
 };
