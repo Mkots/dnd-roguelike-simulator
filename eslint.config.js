@@ -8,7 +8,7 @@ import unicorn from "eslint-plugin-unicorn";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores(["dist", "playwright", "playwright-report"]),
+  globalIgnores(["dist", "playwright", "playwright-report", "coverage", "coverage-ct"]),
   {
     files: ["**/*.{js,ts,tsx}"],
     plugins: { n: pluginN, unicorn },
@@ -60,6 +60,7 @@ export default defineConfig([
     },
     rules: {
       "no-negated-condition": "error",
+      "no-nested-ternary": "error",
       "no-restricted-globals": [
         "error",
         { name: "parseInt", message: "Use Number.parseInt instead." },
