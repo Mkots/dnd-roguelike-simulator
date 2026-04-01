@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { FighterCard } from '@/components/FighterCard';
 import { CombatLog } from '@/components/CombatLog';
+import { SkillButton } from '@/components/SkillButton';
 import { useRunStore } from '@/store/runStore';
 import { useGameStore } from '@/store/gameStore';
 import { HEAL_AMOUNT } from '@/engine/types';
 import { GOLD_PER_KILL, getGoldMultiplier, calculateGoldPenalty } from '@/engine/shop';
+import { getSkillById } from '@/engine/skills';
 
 const ROUND_INTERVAL_MS = 600;
 
@@ -19,6 +21,7 @@ export default function GameScreen() {
     advanceRound,
     prepareNextFight,
     applyHeal,
+    applySkill,
     exitEarly,
   } = useRunStore();
   const { collectRewards, playerState, spendHealCharge } = useGameStore();
@@ -115,6 +118,22 @@ export default function GameScreen() {
       <div className="shrink-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
         {showPreFight && (
           <div className="flex flex-col gap-2">
+            {runState.activeSkills.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-1">
+                {runState.activeSkills.map(activeSkill => {
+                  const skill = getSkillById(activeSkill.skillId);
+                  if (!skill) return null;
+                  return (
+                    <SkillButton
+                      key={activeSkill.skillId}
+                      skill={skill}
+                      usesRemaining={activeSkill.usesRemaining}
+                      onUse={() => applySkill(activeSkill.skillId)}
+                    />
+                  );
+                })}
+              </div>
+            )}
             <Button size="lg" className="w-full h-12 text-base font-semibold" onClick={startFight}>
               Start Fight
             </Button>

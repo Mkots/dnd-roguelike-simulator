@@ -31,13 +31,15 @@ export function SkillButton({
   };
 
   const isExhausted = usesRemaining !== undefined && usesRemaining <= 0;
-  const buttonText = onUse
-    ? isExhausted
-      ? `${skill.name} (Used)`
-      : `${skill.name}${usesRemaining !== undefined ? ` (${usesRemaining})` : ''}`
-    : equipped
-    ? skill.name
-    : skill.name;
+
+  let buttonText = skill.name;
+  if (onUse) {
+    if (isExhausted) {
+      buttonText = `${skill.name} (Used)`;
+    } else if (usesRemaining !== undefined) {
+      buttonText = `${skill.name} (${usesRemaining})`;
+    }
+  }
 
   return (
     <Button

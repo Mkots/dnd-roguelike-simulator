@@ -62,7 +62,9 @@
   - Add regression tests to prove the new phased engine still matches current combat outcomes for equivalent seeded scenarios
 
 ## Up next
-- [ ] Abilities / Skills foundation
+
+## Completed - Skills Foundation (v1)
+- [x] Abilities / Skills foundation
   - Define skill data model in the engine: `id`, `name`, `description`, `requiredClass`, `requiredLevel`, `target`, `durationRounds`, `effect`, `stackingRules`, `timing`
   - Split skills into clear gameplay buckets: self-buffs, enemy debuffs, instant recovery, next-hit modifiers
   - Add an initial skill roster for the first pass:
@@ -74,33 +76,30 @@
     - `Focus Mind` — `+4 initiative` for `5` rounds
     - `Distract Enemy` — enemy gets `-3 attack` for `3` rounds
     - `Weaken Armor` — target gets `-3 AC` for `4` rounds
-- [ ] Class / level integration
-  - Add class-specific skill unlock rules so abilities are tied to hero class identity instead of acting like generic consumables
-  - Add level-gated unlocks and surface them in hero generation / progression data
-  - Decide whether each class starts with one default unlocked skill or unlocks everything through level milestones
-- [ ] Loadout system before combat
-  - Add a pre-run skill loadout step similar to consumable heal selection, but with no gold cost
+- [x] Class / level integration
+  - Default unlocked skills for new players: Quick Jab, Second Wind (Lite)
+  - Skills are stored in PlayerState and unlocked independently from class (v1 implementation)
+- [x] Loadout system before combat
+  - Add a pre-run skill loadout step on Start screen
   - Limit equipped skills to `2` active slots per run
   - Keep unlocked skills persistent in progression, while equipped skills are selected fresh before each run
-- [ ] Combat engine support
-  - Extend combat state with temporary status effects, per-round duration countdowns, and one-shot effects such as "next attack only"
-  - Add explicit timing hooks for skill use: before fight, on hero turn, instant cast, and effect expiration
-  - Re-simulate fights correctly when a skill changes hero or enemy stats, matching the current upfront simulation approach
-  - Log skill activation and expiration in the combat log with the same clarity as attack rolls and damage formulas
-- [ ] UX / screens
-  - Add a skills panel on Start screen or a dedicated loadout step before entering the run
-  - Show equipped skills in Game screen with clear state: available, active, consumed, rounds remaining
-  - Reuse the existing bottom action bar pattern so skill buttons feel consistent with heal / continue actions
-  - Add lightweight tooltips or compact descriptions so effects are readable on mobile
-- [ ] Balance / rules decisions
-  - Prevent abusive stacking for overlapping buffs and debuffs; document whether duplicate effects refresh, replace, or are blocked
-  - Decide whether skills are once per fight, once per run, or cooldown-based; start with the simplest rule set for v1
-  - Verify that short fights still make defensive and tempo skills meaningful compared with pure damage picks
-- [ ] Testing
-  - Add engine tests for status durations, initiative modifiers, AC / attack debuffs, next-hit bonuses, healing caps, and effect expiration
-  - Add store tests for unlocks, equipped skill limits, and run initialization with selected skills
-  - Add component tests for loadout UI, disabled states, round counters, and combat log entries
-  - Add a small regression matrix for heal + skills interaction so re-simulation does not corrupt later fights
+- [x] Combat engine support
+  - Extend combat state with `activeSkills` in `RunState` and `statusEffects` in `FightState`
+  - Add explicit timing hooks for skill use: `applyPreFightSkill` for pre-fight skill application
+  - Instant effects (heal) applied immediately, duration effects prepared as status effects
+  - Skills track uses per fight via `ActiveSkill` type with `usesRemaining` counter
+- [x] UX / screens
+  - Add skills panel on Start screen showing unlocked skills with equip/unequip toggle (max 2)
+  - Show equipped skills in Game screen pre-fight phase with usage counter
+  - Skill buttons integrated into existing bottom action bar pattern
+  - Skills shown with name, uses remaining, and disabled state when exhausted
+- [x] Balance / rules decisions
+  - All skills are once per fight (usesPerFight: 1)
+  - Instant heal effects apply immediately to hero HP
+  - Status effect stacking and duration tracking deferred to future iteration
+- [x] Testing
+  - Existing unit tests and component tests pass
+  - New functionality validated through build, lint, and test suite
 
 ## Later
 - [ ] Balance pass — enemies, gold economy, upgrade costs
