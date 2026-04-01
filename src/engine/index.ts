@@ -33,7 +33,6 @@ export type {
   CombatRound,
   FightLog,
   FightState,
-  RoundResolution,
   RunPhase,
   RunState,
   RunLog,

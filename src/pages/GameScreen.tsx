@@ -35,11 +35,11 @@ export default function GameScreen() {
   const enemy = fight?.enemy ?? runState?.currentEnemy;
 
   useEffect(() => {
-    if (!runState || runState.phase !== 'fighting' || !fight) return;
+    if (runState?.phase !== 'fighting' || !fight) return;
 
     const timer = setInterval(() => {
       const latest = useRunStore.getState().runState;
-      if (!latest || latest.phase !== 'fighting') {
+      if (latest?.phase !== 'fighting') {
         clearInterval(timer);
         return;
       }
