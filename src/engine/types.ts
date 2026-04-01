@@ -48,7 +48,6 @@ export type CombatRound = {
   enemyHpAfter: number;
 };
 
-export type RoundResolution = CombatRound;
 
 export type FightState = {
   heroStart: Creature;

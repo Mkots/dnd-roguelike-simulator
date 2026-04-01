@@ -8,7 +8,22 @@ vi.mock('../../../src/engine/dice', () => ({
   buildFormula: vi.fn(),
 }));
 
-import { fight, simulateRun } from '../../../src/engine/combat';
+import {
+  fight,
+  simulateRun,
+  createFightState,
+  resolveNextRound,
+  finalizeFight,
+  createRunState,
+  applyPreFightHeal,
+  applyPreFightSkill,
+  startFight,
+  advanceFightRound,
+  prepareNextFight,
+  exitRunEarly,
+  toRunLog,
+} from '../../../src/engine/combat';
+import type { SkillDefinition } from '../../../src/engine/types';
 import { d20, rollFormula } from '../../../src/engine/dice';
 
 const mockD20 = vi.mocked(d20);
@@ -341,5 +356,270 @@ describe('simulateRun', () => {
 
     // Assert
     expect(log.exitType).toBe('died');
+  });
+});
+
+describe('createFightState', () => {
+  it('hero acts first when hero initiative >= enemy initiative', () => {
+    setupD20(15, 5);
+    const hero = makeCreature();
+    const enemy = makeCreature();
+    const state = createFightState(hero, enemy);
+    expect(state.firstAttacker).toBe('hero');
+  });
+
+  it('enemy acts first when enemy initiative > hero initiative', () => {
+    setupD20(5, 15);
+    const state = createFightState(makeCreature(), makeCreature());
+    expect(state.firstAttacker).toBe('enemy');
+  });
+
+  it('stores snapshot copies of hero and enemy', () => {
+    setupD20(15, 5);
+    const hero = makeCreature({ name: 'Hero', currentHp: 10 });
+    const enemy = makeCreature({ name: 'Foe', currentHp: 8 });
+    const state = createFightState(hero, enemy);
+    expect(state.heroStart.name).toBe('Hero');
+    expect(state.enemyStart.name).toBe('Foe');
+    expect(state.winner).toBeNull();
+    expect(state.rounds).toHaveLength(0);
+  });
+});
+
+describe('resolveNextRound', () => {
+  it('returns null round when fight already has a winner', () => {
+    setupD20(15, 5);
+    let state = createFightState(makeCreature(), makeCreature());
+    state = { ...state, winner: 'hero' };
+    const { round } = resolveNextRound(state);
+    expect(round).toBeNull();
+  });
+
+  it('advances fight by one round', () => {
+    // hero first, misses, enemy misses — no winner yet
+    setupD20(15, 5, 1, 1);
+    const state = createFightState(
+      makeCreature({ armorClass: 15, attackBonus: 0 }),
+      makeCreature({ armorClass: 15, attackBonus: 0 }),
+    );
+    const { fight: next, round } = resolveNextRound(state);
+    expect(round?.round).toBe(1);
+    expect(next.winner).toBeNull();
+    expect(next.rounds).toHaveLength(1);
+  });
+});
+
+describe('finalizeFight', () => {
+  it('throws when fight has no winner', () => {
+    setupD20(15, 5);
+    const state = createFightState(makeCreature(), makeCreature());
+    expect(() => finalizeFight(state)).toThrow('Cannot finalize fight before winner is known');
+  });
+});
+
+describe('createRunState', () => {
+  it('starts as completed with survived when no enemies', () => {
+    const state = createRunState(makeCreature(), []);
+    expect(state.phase).toBe('completed');
+    expect(state.exitType).toBe('survived');
+  });
+
+  it('starts as pre-fight with enemies', () => {
+    const state = createRunState(makeCreature(), [makeCreature()]);
+    expect(state.phase).toBe('pre-fight');
+    expect(state.exitType).toBeNull();
+  });
+});
+
+describe('applyPreFightHeal', () => {
+  it('heals hero in pre-fight and caps at maxHp', () => {
+    const hero = makeCreature({ currentHp: 5, maxHp: 10 });
+    let state = createRunState(hero, [makeCreature()]);
+    state = applyPreFightHeal(state, 8);
+    expect(state.hero.currentHp).toBe(10);
+  });
+
+  it('does nothing outside pre-fight', () => {
+    const hero = makeCreature({ currentHp: 5, maxHp: 10 });
+    let state = createRunState(hero, [makeCreature()]);
+    state = { ...state, phase: 'fighting' };
+    state = applyPreFightHeal(state, 5);
+    expect(state.hero.currentHp).toBe(5);
+  });
+});
+
+const makeHealSkill = (): SkillDefinition => ({
+  id: 'second-wind',
+  name: 'Second Wind',
+  description: 'Restore HP',
+  target: 'self',
+  timing: 'pre-fight',
+  effect: { type: 'heal-instant', value: 5 },
+  usesPerFight: 1,
+});
+
+const makeBuffSkill = (): SkillDefinition => ({
+  id: 'quick-jab',
+  name: 'Quick Jab',
+  description: '+5 dmg next attack',
+  target: 'self',
+  timing: 'pre-fight',
+  effect: { type: 'damage-bonus-next', value: 5 },
+  usesPerFight: 1,
+});
+
+describe('applyPreFightSkill', () => {
+  it('heals hero when skill effect is heal-instant', () => {
+    const hero = makeCreature({ currentHp: 5, maxHp: 10 });
+    let state = createRunState(hero, [makeCreature()]);
+    state = applyPreFightSkill(state, makeHealSkill());
+    expect(state.hero.currentHp).toBe(10);
+  });
+
+  it('caps heal at maxHp', () => {
+    const hero = makeCreature({ currentHp: 8, maxHp: 10 });
+    let state = createRunState(hero, [makeCreature()]);
+    state = applyPreFightSkill(state, makeHealSkill()); // +5 but capped
+    expect(state.hero.currentHp).toBe(10);
+  });
+
+  it('does nothing for non-heal effects (no HP change)', () => {
+    const hero = makeCreature({ currentHp: 5, maxHp: 10 });
+    let state = createRunState(hero, [makeCreature()]);
+    state = applyPreFightSkill(state, makeBuffSkill());
+    expect(state.hero.currentHp).toBe(5);
+  });
+
+  it('does nothing outside pre-fight', () => {
+    const hero = makeCreature({ currentHp: 5, maxHp: 10 });
+    let state = createRunState(hero, [makeCreature()]);
+    state = { ...state, phase: 'fighting' };
+    state = applyPreFightSkill(state, makeHealSkill());
+    expect(state.hero.currentHp).toBe(5);
+  });
+
+  it('decrements usesRemaining for a tracked active skill', () => {
+    let state = createRunState(makeCreature(), [makeCreature()]);
+    state = {
+      ...state,
+      activeSkills: [{ skillId: 'second-wind', usesRemaining: 1 }],
+    };
+    state = applyPreFightSkill(state, makeHealSkill());
+    expect(state.activeSkills[0].usesRemaining).toBe(0);
+  });
+
+  it('does not decrement when usesRemaining is already 0', () => {
+    let state = createRunState(makeCreature(), [makeCreature()]);
+    state = {
+      ...state,
+      activeSkills: [{ skillId: 'second-wind', usesRemaining: 0 }],
+    };
+    state = applyPreFightSkill(state, makeHealSkill());
+    expect(state.activeSkills[0].usesRemaining).toBe(0);
+  });
+});
+
+describe('startFight', () => {
+  it('transitions from pre-fight to fighting', () => {
+    setupD20(15, 5);
+    const state = createRunState(makeCreature(), [makeCreature()]);
+    const next = startFight(state);
+    expect(next.phase).toBe('fighting');
+    expect(next.currentFight).not.toBeNull();
+  });
+
+  it('does nothing when not in pre-fight phase', () => {
+    setupD20(15, 5, 20);
+    mockRollFormula.mockReturnValueOnce(dmg(10));
+    let state = createRunState(makeCreature(), [makeCreature()]);
+    state = startFight(state);
+    state = advanceFightRound(state); // fight ends
+    const phase = state.phase;
+    const again = startFight(state);
+    expect(again.phase).toBe(phase); // unchanged
+  });
+});
+
+describe('advanceFightRound', () => {
+  it('does not end fight when both combatants survive the round', () => {
+    // hero first, hero misses, enemy misses — nobody dies
+    const hero = makeCreature({ armorClass: 15, attackBonus: 0, currentHp: 10 });
+    const enemy = makeCreature({ armorClass: 15, attackBonus: 0, currentHp: 10 });
+    let state = createRunState(hero, [enemy]);
+    setupD20(15, 5, 1, 1); // hero first (initiative), then both miss
+    state = startFight(state);
+    const next = advanceFightRound(state);
+    expect(next.phase).toBe('fighting');
+    expect(next.currentFight?.rounds).toHaveLength(1);
+  });
+
+  it('does nothing when not in fighting phase', () => {
+    const state = createRunState(makeCreature(), [makeCreature()]);
+    const next = advanceFightRound(state);
+    expect(next.phase).toBe('pre-fight');
+  });
+});
+
+describe('prepareNextFight', () => {
+  it('transitions post-fight back to pre-fight', () => {
+    setupD20(15, 5, 20);
+    mockRollFormula.mockReturnValueOnce(dmg(10));
+    let state = createRunState(makeCreature(), [makeCreature({ currentHp: 10 }), makeCreature()]);
+    state = startFight(state);
+    while (state.phase === 'fighting') state = advanceFightRound(state);
+    expect(state.phase).toBe('post-fight');
+    state = prepareNextFight(state);
+    expect(state.phase).toBe('pre-fight');
+    expect(state.currentFight).toBeNull();
+  });
+
+  it('does nothing outside post-fight', () => {
+    const state = createRunState(makeCreature(), [makeCreature()]);
+    const next = prepareNextFight(state);
+    expect(next.phase).toBe('pre-fight'); // unchanged
+  });
+});
+
+describe('exitRunEarly', () => {
+  it('sets phase to completed and exitType to early-exit from pre-fight', () => {
+    const state = createRunState(makeCreature(), [makeCreature()]);
+    const next = exitRunEarly(state);
+    expect(next.phase).toBe('completed');
+    expect(next.exitType).toBe('early-exit');
+  });
+
+  it('sets phase to completed and exitType to early-exit from post-fight', () => {
+    setupD20(15, 5, 20);
+    mockRollFormula.mockReturnValueOnce(dmg(10));
+    let state = createRunState(makeCreature(), [makeCreature({ currentHp: 10 }), makeCreature()]);
+    state = startFight(state);
+    while (state.phase === 'fighting') state = advanceFightRound(state);
+    const next = exitRunEarly(state);
+    expect(next.phase).toBe('completed');
+    expect(next.exitType).toBe('early-exit');
+  });
+
+  it('does nothing when in fighting phase', () => {
+    setupD20(15, 5);
+    let state = createRunState(makeCreature(), [makeCreature()]);
+    state = startFight(state);
+    const next = exitRunEarly(state);
+    expect(next.phase).toBe('fighting');
+  });
+});
+
+describe('toRunLog', () => {
+  it('returns null when exitType is null', () => {
+    const state = createRunState(makeCreature(), [makeCreature()]);
+    expect(toRunLog(state)).toBeNull();
+  });
+
+  it('returns a RunLog when exitType is set', () => {
+    let state = createRunState(makeCreature(), [makeCreature()]);
+    state = exitRunEarly(state);
+    const log = toRunLog(state);
+    expect(log).not.toBeNull();
+    expect(log?.exitType).toBe('early-exit');
+    expect(log?.survived).toBe(false);
   });
 });

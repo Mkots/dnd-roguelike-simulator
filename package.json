@@ -12,7 +12,9 @@
     "test": "vitest run",
     "test:ct": "playwright test --config=playwright-ct.config.ts",
     "test:coverage": "vitest run --coverage",
-    "test:ct:coverage": "COVERAGE=true playwright test --config=playwright-ct.config.ts"
+    "test:ct:coverage": "COVERAGE=true playwright test --config=playwright-ct.config.ts",
+    "rename-assets": "node scripts/rename-assets.js",
+    "sonar-report": "bash scripts/sonar-report.sh"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

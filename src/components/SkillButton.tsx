@@ -1,7 +1,7 @@
 import type { SkillDefinition } from '@/engine/types';
 import { Button } from '@/components/ui/button';
 
-type SkillButtonProps = {
+type SkillButtonProps = Readonly<{
   skill: SkillDefinition;
   usesRemaining?: number;
   disabled?: boolean;
@@ -9,7 +9,7 @@ type SkillButtonProps = {
   onUse?: () => void;
   onEquip?: () => void;
   onUnequip?: () => void;
-};
+}>;
 
 export function SkillButton({
   skill,

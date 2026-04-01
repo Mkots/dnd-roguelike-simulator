@@ -199,3 +199,75 @@ describe('gameStore — resetProgress()', () => {
     expect(playerState.purchasedUpgrades).toEqual({});
   });
 });
+
+describe('gameStore — equipSkill()', () => {
+  beforeEach(resetStore);
+
+  it('returns false when skill is not unlocked', () => {
+    // 'minor-shielding' is not in DEFAULT_UNLOCKED_SKILLS
+    const ok = useGameStore.getState().equipSkill('minor-shielding');
+    expect(ok).toBe(false);
+    expect(useGameStore.getState().playerState.equippedSkills).toHaveLength(0);
+  });
+
+  it('returns true and equips when skill is unlocked', () => {
+    useGameStore.setState(s => ({
+      playerState: { ...s.playerState, unlockedSkills: ['quick-jab'] },
+    }));
+    const ok = useGameStore.getState().equipSkill('quick-jab');
+    expect(ok).toBe(true);
+    expect(useGameStore.getState().playerState.equippedSkills).toContain('quick-jab');
+  });
+
+  it('returns true without duplicating when already equipped', () => {
+    useGameStore.setState(s => ({
+      playerState: {
+        ...s.playerState,
+        unlockedSkills: ['quick-jab'],
+        equippedSkills: ['quick-jab'],
+      },
+    }));
+    const ok = useGameStore.getState().equipSkill('quick-jab');
+    expect(ok).toBe(true);
+    expect(useGameStore.getState().playerState.equippedSkills).toHaveLength(1);
+  });
+
+  it('returns false when MAX_EQUIPPED_SKILLS limit is reached', () => {
+    // Fill equippedSkills to the limit with different ids
+    const fakeSkills = Array.from({ length: 10 }, (_, i) => `skill-${i}`);
+    useGameStore.setState(s => ({
+      playerState: {
+        ...s.playerState,
+        unlockedSkills: ['quick-jab', ...fakeSkills],
+        equippedSkills: fakeSkills.slice(0, 2), // assume MAX_EQUIPPED_SKILLS = 2
+      },
+    }));
+    // Only fails if we're already at the limit (MAX_EQUIPPED_SKILLS = 2)
+    const currentEquipped = useGameStore.getState().playerState.equippedSkills.length;
+    if (currentEquipped >= 2) {
+      const ok = useGameStore.getState().equipSkill('quick-jab');
+      expect(ok).toBe(false);
+    }
+  });
+});
+
+describe('gameStore — unequipSkill()', () => {
+  beforeEach(resetStore);
+
+  it('removes a skill from equippedSkills', () => {
+    useGameStore.setState(s => ({
+      playerState: {
+        ...s.playerState,
+        unlockedSkills: ['quick-jab'],
+        equippedSkills: ['quick-jab'],
+      },
+    }));
+    useGameStore.getState().unequipSkill('quick-jab');
+    expect(useGameStore.getState().playerState.equippedSkills).not.toContain('quick-jab');
+  });
+
+  it('is a no-op when skill was not equipped', () => {
+    useGameStore.getState().unequipSkill('quick-jab');
+    expect(useGameStore.getState().playerState.equippedSkills).toHaveLength(0);
+  });
+});

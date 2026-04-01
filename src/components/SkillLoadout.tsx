@@ -1,12 +1,12 @@
 import { SKILLS, MAX_EQUIPPED_SKILLS } from '@/engine/skills';
 import { SkillButton } from './SkillButton';
 
-type SkillLoadoutProps = {
+type SkillLoadoutProps = Readonly<{
   unlockedSkills: string[];
   equippedSkills: string[];
   onEquip: (skillId: string) => void;
   onUnequip: (skillId: string) => void;
-};
+}>;
 
 export function SkillLoadout({
   unlockedSkills,

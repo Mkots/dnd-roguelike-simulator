@@ -101,6 +101,19 @@
   - Existing unit tests and component tests pass
   - New functionality validated through build, lint, and test suite
 
+## Quality Gates (2026-04-01)
+- [x] SonarCloud issues resolved
+  - Removed redundant `RoundResolution` type alias (replaced with `CombatRound`)
+  - Optional chaining applied in `GameScreen.tsx` (2× S6582)
+  - Props marked as `Readonly<>` in `SkillButton` and `SkillLoadout` (S6759)
+- [x] Test coverage expanded
+  - Unit tests: step-based combat API (`createFightState`, `resolveNextRound`, `finalizeFight`, `applyPreFightSkill`, `startFight`, `advanceFightRound`, `exitRunEarly`, `toRunLog`, etc.)
+  - Unit tests: `skills.ts` (`getSkillById`, `DEFAULT_UNLOCKED_SKILLS`, `MAX_EQUIPPED_SKILLS`)
+  - Unit tests: `runStore` (`applySkill`, `clearRun`, `startRun` with equipped skills)
+  - Unit tests: `gameStore` (`equipSkill`, `unequipSkill`)
+  - Component tests: `SkillButton` (render, disabled states, click callbacks)
+  - Component tests: `SkillLoadout` (render, equip limit, callbacks)
+
 ## Later
 - [ ] Balance pass — enemies, gold economy, upgrade costs
 - [ ] Classes / Hero generator — different classes with unique stats
