@@ -7,6 +7,8 @@ import type {
   FightState,
   RunLog,
   RunState,
+  SkillDefinition,
+  StatusEffect,
 } from './types';
 import { d20, rollFormula } from './dice';
 import { abilityModifier } from './creature';
@@ -48,6 +50,7 @@ export const createFightState = (hero: Creature, enemy: Creature): FightState =>
     nextRound: 1,
     firstAttacker,
     winner: null,
+    statusEffects: [],
   };
 };
 
@@ -121,6 +124,7 @@ export const createRunState = (hero: Creature, enemies: Creature[]): RunState =>
   phase: enemies.length > 0 ? 'pre-fight' : 'completed',
   enemiesDefeated: 0,
   exitType: enemies.length > 0 ? null : 'survived',
+  activeSkills: [],
 });
 
 export const applyPreFightHeal = (state: RunState, healAmount: number): RunState => {
@@ -135,12 +139,67 @@ export const applyPreFightHeal = (state: RunState, healAmount: number): RunState
   };
 };
 
+export const applyPreFightSkill = (state: RunState, skill: SkillDefinition): RunState => {
+  if (state.phase !== 'pre-fight') return state;
+
+  let updatedState = { ...state };
+
+  // Apply instant effects
+  if (skill.effect.type === 'heal-instant') {
+    updatedState = {
+      ...updatedState,
+      hero: {
+        ...updatedState.hero,
+        currentHp: Math.min(
+          updatedState.hero.maxHp,
+          updatedState.hero.currentHp + skill.effect.value
+        ),
+      },
+    };
+  }
+
+  // Decrement skill usage
+  const activeSkillIndex = updatedState.activeSkills.findIndex(s => s.skillId === skill.id);
+  if (activeSkillIndex !== -1) {
+    const updatedActiveSkills = [...updatedState.activeSkills];
+    const activeSkill = updatedActiveSkills[activeSkillIndex];
+    if (activeSkill.usesRemaining > 0) {
+      updatedActiveSkills[activeSkillIndex] = {
+        ...activeSkill,
+        usesRemaining: activeSkill.usesRemaining - 1,
+      };
+      updatedState = {
+        ...updatedState,
+        activeSkills: updatedActiveSkills,
+      };
+    }
+  }
+
+  return updatedState;
+};
+
 export const startFight = (state: RunState): RunState => {
   if (state.phase !== 'pre-fight' || !state.currentEnemy) return state;
 
+  const fightState = createFightState(state.hero, state.currentEnemy);
+
+  // Convert active skill effects into status effects for this fight
+  const statusEffects: StatusEffect[] = state.activeSkills
+    .filter(as => as.usesRemaining > 0)
+    .flatMap(as => {
+      const skill = state.activeSkills.find(s => s.skillId === as.skillId);
+      if (!skill) return [];
+
+      // Only duration-based effects become status effects
+      // Instant effects (heal) and next-attack effects are handled differently
+      const effects: StatusEffect[] = [];
+
+      return effects;
+    });
+
   return {
     ...state,
-    currentFight: createFightState(state.hero, state.currentEnemy),
+    currentFight: { ...fightState, statusEffects },
     phase: 'fighting',
   };
 };

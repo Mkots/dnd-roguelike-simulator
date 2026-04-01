@@ -10,6 +10,7 @@ import {
   buyHealCharge as buyHealChargeFromShop,
 } from '../engine/shop';
 import { WEAPON_PROGRESSION } from '../engine/upgrades';
+import { MAX_EQUIPPED_SKILLS } from '../engine/skills';
 
 export const DEFAULT_HERO_CONFIG: HeroConfig = {
   name: 'Hero',
@@ -34,6 +35,8 @@ type GameStore = {
   buyUpgrade: (upgradeId: string) => boolean;
   buyHealCharge: () => boolean;
   spendHealCharge: () => boolean;
+  equipSkill: (skillId: string) => boolean;
+  unequipSkill: (skillId: string) => void;
   resetProgress: () => void;
 };
 
@@ -68,6 +71,36 @@ export const useGameStore = create<GameStore>()(
           playerState: { ...s.playerState, healCharges: s.playerState.healCharges - 1 },
         }));
         return true;
+      },
+
+      equipSkill: (skillId) => {
+        const { playerState } = get();
+
+        // Check if skill is unlocked
+        if (!playerState.unlockedSkills.includes(skillId)) return false;
+
+        // Check if already equipped
+        if (playerState.equippedSkills.includes(skillId)) return true;
+
+        // Check if we've reached the limit
+        if (playerState.equippedSkills.length >= MAX_EQUIPPED_SKILLS) return false;
+
+        set(s => ({
+          playerState: {
+            ...s.playerState,
+            equippedSkills: [...s.playerState.equippedSkills, skillId],
+          },
+        }));
+        return true;
+      },
+
+      unequipSkill: (skillId) => {
+        set(s => ({
+          playerState: {
+            ...s.playerState,
+            equippedSkills: s.playerState.equippedSkills.filter(id => id !== skillId),
+          },
+        }));
       },
 
       resetProgress: () => set({ playerState: createInitialPlayerState() }),

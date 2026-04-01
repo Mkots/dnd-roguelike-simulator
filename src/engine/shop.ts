@@ -7,6 +7,7 @@ import type {
 } from "./types";
 import { createCreature } from "./creature";
 import { UPGRADES, WEAPON_PROGRESSION } from "./upgrades";
+import { DEFAULT_UNLOCKED_SKILLS } from "./skills";
 
 export const GOLD_PER_KILL = 2;
 export const HEAL_CHARGE_COST = 10;
@@ -19,6 +20,8 @@ export const createInitialPlayerState = (): PlayerState => ({
   totalRuns: 0,
   bestRun: 0,
   healCharges: 0,
+  unlockedSkills: DEFAULT_UNLOCKED_SKILLS,
+  equippedSkills: [],
 });
 
 const upgradeCost = (costPerLevel: number, currentLevel: number): number =>
