@@ -59,6 +59,7 @@ export type FightState = {
   nextRound: number;
   firstAttacker: 'hero' | 'enemy';
   winner: 'hero' | 'enemy' | null;
+  statusEffects: StatusEffect[];
 };
 
 export type FightLog = {
@@ -83,6 +84,7 @@ export type RunState = {
   phase: RunPhase;
   enemiesDefeated: number;
   exitType: 'survived' | 'died' | 'early-exit' | null;
+  activeSkills: ActiveSkill[];
 };
 
 export type RunLog = {
@@ -107,6 +109,8 @@ export type PlayerState = {
   totalRuns: number;
   bestRun: number;
   healCharges: number;
+  unlockedSkills: string[];
+  equippedSkills: string[];
 };
 
 export const HEAL_AMOUNT = 10;
@@ -120,3 +124,49 @@ export type ShopItem = UpgradeDefinition & {
 export type ShopResult =
   | { success: true; playerState: PlayerState }
   | { success: false; reason: string; playerState: PlayerState };
+
+// --- Skills / Abilities ---
+
+export type SkillTarget = 'self' | 'enemy';
+
+export type SkillTiming = 'pre-fight' | 'instant';
+
+export type SkillEffectType =
+  | 'damage-bonus-next'
+  | 'damage-bonus-duration'
+  | 'ac-bonus-duration'
+  | 'damage-reduction-duration'
+  | 'heal-instant'
+  | 'initiative-bonus-duration'
+  | 'enemy-attack-penalty-duration'
+  | 'enemy-ac-penalty-duration';
+
+export type SkillEffect = {
+  type: SkillEffectType;
+  value: number;
+  durationRounds?: number;
+};
+
+export type SkillDefinition = {
+  id: string;
+  name: string;
+  description: string;
+  target: SkillTarget;
+  timing: SkillTiming;
+  effect: SkillEffect;
+  usesPerFight?: number;
+  usesPerRun?: number;
+};
+
+export type StatusEffect = {
+  skillId: string;
+  type: SkillEffectType;
+  value: number;
+  remainingRounds: number;
+  target: 'hero' | 'enemy';
+};
+
+export type ActiveSkill = {
+  skillId: string;
+  usesRemaining: number;
+};

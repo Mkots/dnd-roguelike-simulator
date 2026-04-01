@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { GameTitle } from '@/components/GameTitle';
 import { PlayerStats } from '@/components/PlayerStats';
 import { HeroPreview } from '@/components/HeroPreview';
+import { SkillLoadout } from '@/components/SkillLoadout';
 import { useGameStore } from '@/store/gameStore';
 import { useRunStore } from '@/store/runStore';
 import { createEnemies } from '@/engine/enemies';
@@ -10,12 +11,12 @@ import type { RunStore } from '../store/runStore';
 
 export default function StartScreen() {
   const navigate = useNavigate();
-  const { playerState, getHero, resetProgress } = useGameStore();
+  const { playerState, getHero, resetProgress, equipSkill, unequipSkill } = useGameStore();
   const startRun = useRunStore((s: RunStore) => s.startRun);
   const hero = getHero();
 
   const handleStart = () => {
-    startRun(hero, createEnemies());
+    startRun(hero, createEnemies(), playerState.equippedSkills);
     navigate('/game');
   };
 
@@ -26,6 +27,12 @@ export default function StartScreen() {
         <GameTitle />
         <PlayerStats playerState={playerState} />
         <HeroPreview hero={hero} />
+        <SkillLoadout
+          unlockedSkills={playerState.unlockedSkills}
+          equippedSkills={playerState.equippedSkills}
+          onEquip={equipSkill}
+          onUnequip={unequipSkill}
+        />
         <button
           onClick={resetProgress}
           className="mt-auto text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"

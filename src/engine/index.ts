@@ -10,6 +10,7 @@ export {
   advanceFightRound,
   prepareNextFight,
   applyPreFightHeal,
+  applyPreFightSkill,
   exitRunEarly,
   toRunLog,
 } from './combat';
@@ -23,6 +24,7 @@ export {
   GOLD_PER_KILL,
 } from './shop';
 export { UPGRADES, WEAPON_PROGRESSION } from './upgrades';
+export { SKILLS, getSkillById, DEFAULT_UNLOCKED_SKILLS, MAX_EQUIPPED_SKILLS } from './skills';
 export type {
   AbilityScores,
   Creature,
@@ -39,6 +41,13 @@ export type {
   PlayerState,
   ShopItem,
   ShopResult,
+  SkillDefinition,
+  SkillEffect,
+  SkillEffectType,
+  SkillTarget,
+  SkillTiming,
+  StatusEffect,
+  ActiveSkill,
 } from './types';
 
 // HeroConfig lives in shop.ts, re-export it too
