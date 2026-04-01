@@ -1,83 +1,96 @@
 import { create } from 'zustand';
-import type { Creature, RunLog } from '../engine/types';
-import { simulateRun, fight } from '../engine/combat';
+import type { Creature, RunLog, RunPhase, RunState } from '../engine/types';
+import {
+  createRunState,
+  startFight as engineStartFight,
+  advanceFightRound,
+  prepareNextFight as enginePrepareNextFight,
+  applyPreFightHeal,
+  exitRunEarly,
+  toRunLog,
+} from '../engine/combat';
 
 export type RunStore = {
+  runState: RunState | null;
   runLog: RunLog | null;
   currentFightIndex: number;
   allEnemies: Creature[];
 
   startRun: (hero: Creature, enemies: Creature[]) => void;
-  nextFight: () => void;
+  startFight: () => void;
+  advanceRound: () => void;
+  advanceUntilFightEnds: () => void;
+  prepareNextFight: () => void;
   clearRun: () => void;
-  applyHeal: (healAmount: number, hero: Creature) => void;
+  applyHeal: (healAmount: number) => void;
   exitEarly: () => void;
+  getPhase: () => RunPhase | null;
 };
 
 export const useRunStore = create<RunStore>((set, get) => ({
+  runState: null,
   runLog: null,
   currentFightIndex: 0,
   allEnemies: [],
 
   startRun: (hero, enemies) => {
-    const runLog = simulateRun(hero, enemies);
-    set({ runLog, currentFightIndex: 0, allEnemies: enemies });
+    const runState = createRunState(hero, enemies);
+    set({
+      runState,
+      runLog: toRunLog(runState),
+      currentFightIndex: 0,
+      allEnemies: enemies,
+    });
   },
 
-  nextFight: () => set((s) => ({ currentFightIndex: s.currentFightIndex + 1 })),
+  startFight: () => {
+    const { runState } = get();
+    if (!runState) return;
+    const next = engineStartFight(runState);
+    set({ runState: next, runLog: toRunLog(next), currentFightIndex: next.completedFights.length });
+  },
 
-  clearRun: () => set({ runLog: null, currentFightIndex: 0, allEnemies: [] }),
+  advanceRound: () => {
+    const { runState } = get();
+    if (!runState) return;
+    const next = advanceFightRound(runState);
+    set({ runState: next, runLog: toRunLog(next), currentFightIndex: next.completedFights.length });
+  },
 
-  applyHeal: (healAmount, hero) => {
-    const { runLog, currentFightIndex, allEnemies } = get();
-    if (!runLog) return;
+  advanceUntilFightEnds: () => {
+    const { runState } = get();
+    if (!runState) return;
 
-    const completedFight = runLog.fights[currentFightIndex];
-    if (!completedFight) return;
-
-    const currentHp = completedFight.heroFinalHp;
-    const newHp = Math.min(currentHp + healAmount, hero.maxHp);
-
-    // Re-simulate remaining fights with healed HP, stopping on hero death
-    const healedHero = { ...hero, currentHp: newHp };
-    const remainingEnemies = allEnemies.slice(currentFightIndex + 1);
-
-    let updatedHero = healedHero;
-    const newTailFights: typeof runLog.fights = [];
-    for (const enemy of remainingEnemies) {
-      const result = fight(updatedHero, enemy);
-      newTailFights.push(result);
-      if (result.winner === 'enemy') break;
-      updatedHero = { ...updatedHero, currentHp: result.heroFinalHp };
+    let next = runState;
+    while (next.phase === 'fighting') {
+      next = advanceFightRound(next);
     }
 
-    const newFights = [
-      ...runLog.fights.slice(0, currentFightIndex + 1),
-      ...newTailFights,
-    ];
+    set({ runState: next, runLog: toRunLog(next), currentFightIndex: next.completedFights.length });
+  },
 
-    const lastFight = newFights.at(-1)!;
-    const survived = lastFight.winner === 'hero';
+  prepareNextFight: () => {
+    const { runState } = get();
+    if (!runState) return;
+    const next = enginePrepareNextFight(runState);
+    set({ runState: next, runLog: toRunLog(next), currentFightIndex: next.completedFights.length });
+  },
 
-    set({
-      runLog: {
-        ...runLog,
-        fights: newFights,
-        survived,
-        enemiesDefeated: newFights.filter((f) => f.winner === 'hero').length,
-        heroFinalHp: lastFight.heroFinalHp,
-      },
-    });
+  clearRun: () => set({ runState: null, runLog: null, currentFightIndex: 0, allEnemies: [] }),
+
+  applyHeal: (healAmount) => {
+    const { runState } = get();
+    if (!runState) return;
+    const next = applyPreFightHeal(runState, healAmount);
+    set({ runState: next, runLog: toRunLog(next) });
   },
 
   exitEarly: () => {
-    const { runLog } = get();
-    if (!runLog) return;
-    set({
-      runLog: {
-        ...runLog,
-        exitType: 'early-exit',
-      },
-    });
+    const { runState } = get();
+    if (!runState) return;
+    const next = exitRunEarly(runState);
+    set({ runState: next, runLog: toRunLog(next), currentFightIndex: next.completedFights.length });
   },
+
+  getPhase: () => get().runState?.phase ?? null,
 }));
