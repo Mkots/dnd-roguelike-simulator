@@ -26,24 +26,24 @@
 - [x] Zustand store tests — unit tests for `gameStore` (initial state, getHero, collectRewards, buyUpgrade, buyHealCharge, spendHealCharge, resetProgress) and `runStore` (startRun, nextFight, clearRun, exitEarly, applyHeal)
 
 ## Engine refactor
-- [ ] Replace full upfront run simulation with step-based fight progression
+- [x] Replace full upfront run simulation with step-based fight progression
   - Refactor the engine so the core simulation advances `1 round` at a time instead of precomputing the whole run in `startRun()`
   - Keep the current auto-play UX, but make the engine capable of pausing cleanly between fights for player decisions
   - Treat the pre-fight decision window as the main interaction point: before each enemy, the player may use heal, use one equipped skill, use both, or start the fight immediately
-- [ ] Introduce explicit run / fight state objects
+- [x] Introduce explicit run / fight state objects
   - Replace `RunLog` as the primary source of truth with stateful objects such as `RunState`, `FightState`, and `RoundResolution`
   - Store current hero snapshot, current enemy snapshot, active effects, remaining enemies, completed fight summaries, and current phase
   - Add explicit run phases such as `pre-fight`, `fighting`, `post-fight`, `completed`
-- [ ] Split combat engine into pure step functions
+- [x] Split combat engine into pure step functions
   - Extract pure functions like `createFightState()`, `resolveNextRound()`, `applyPreFightHeal()`, `applyPreFightSkill()`, and `finalizeFight()`
   - Keep RNG inside narrow boundaries so round resolution stays testable even if dice are rolled progressively
   - Make round resolution produce both the updated fight state and a log/event payload for the UI
-- [ ] Rework `runStore` around phase transitions instead of precomputed logs
+- [x] Rework `runStore` around phase transitions instead of precomputed logs
   - Replace `startRun()` behavior so it initializes run state and the first `pre-fight` phase instead of simulating all fights immediately
   - Replace `nextFight()` with explicit actions such as `startFight()`, `advanceRound()`, `advanceUntilFightEnds()`, and `prepareNextFight()`
   - Keep `exitEarly()` available only from the post-fight / pre-next-fight phase
   - Update heal flow so it mutates the current hero state before combat rather than re-simulating a tail of fights
-- [ ] Redesign combat log generation for incremental simulation
+- [x] Redesign combat log generation for incremental simulation
   - Change logs from "final archive generated upfront" to "append as rounds resolve"
   - Keep enough structured data for the current animated `CombatLog`, but decouple it from the assumption that every future round already exists
   - Store completed fights in a compact history so Results screen still has stable end-of-run summaries
@@ -51,11 +51,11 @@
   - Add per-combatant effect containers and turn counters keyed to owner turns, not shared fight rounds
   - Define hooks for pre-fight effect application, round start, attack resolution, damage mitigation, and effect expiration
   - Ensure the model can represent "next attack only" effects and multi-turn buffs without another major refactor
-- [ ] Update UI orchestration without changing the high-level UX
+- [x] Update UI orchestration without changing the high-level UX
   - Preserve the current feeling that combat plays automatically once started
   - Insert a new pre-fight action step before each enemy with buttons for equipped skills and heal charges
   - After combat ends, keep the existing between-fights cadence: review result, optionally `Safe exit`, otherwise continue
-- [ ] Test strategy for the refactor
+- [x] Test strategy for the refactor
   - Add engine tests for per-round state transitions, fight completion, and run completion without relying on upfront simulation
   - Add targeted tests for phase guards: heal only before fights, safe exit only after fights, no actions after run completion
   - Prefer deterministic test seams for RNG injection or mocked dice so step-by-step simulation stays stable under test

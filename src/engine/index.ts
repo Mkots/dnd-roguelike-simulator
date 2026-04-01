@@ -1,5 +1,18 @@
 export { createCreature, abilityModifier } from './creature';
-export { fight, simulateRun } from './combat';
+export {
+  fight,
+  simulateRun,
+  createFightState,
+  resolveNextRound,
+  finalizeFight,
+  createRunState,
+  startFight,
+  advanceFightRound,
+  prepareNextFight,
+  applyPreFightHeal,
+  exitRunEarly,
+  toRunLog,
+} from './combat';
 export { rollDie, rollFormula, d20, buildFormula } from './dice';
 export {
   createInitialPlayerState,
@@ -17,6 +30,10 @@ export type {
   MissAction,
   CombatRound,
   FightLog,
+  FightState,
+  RoundResolution,
+  RunPhase,
+  RunState,
   RunLog,
   UpgradeDefinition,
   PlayerState,

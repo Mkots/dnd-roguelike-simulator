@@ -4,15 +4,14 @@ import type {
   MissAction,
   CombatRound,
   FightLog,
+  FightState,
   RunLog,
-} from "./types";
-import { d20, rollFormula } from "./dice";
-import { abilityModifier } from "./creature";
+  RunState,
+} from './types';
+import { d20, rollFormula } from './dice';
+import { abilityModifier } from './creature';
 
-const resolveAttack = (
-  attacker: Creature,
-  target: Creature,
-): AttackAction | MissAction => {
+const resolveAttack = (attacker: Creature, target: Creature): AttackAction | MissAction => {
   const roll = d20();
   const modifier = attacker.attackBonus;
   const total = roll + modifier;
@@ -20,7 +19,7 @@ const resolveAttack = (
   if (total >= target.armorClass) {
     const dmg = rollFormula(attacker.damageFormula);
     return {
-      type: "hit",
+      type: 'hit',
       roll,
       modifier,
       total,
@@ -32,98 +31,202 @@ const resolveAttack = (
     };
   }
 
-  return { type: "miss", roll, modifier, total, targetAC: target.armorClass };
+  return { type: 'miss', roll, modifier, total, targetAC: target.armorClass };
 };
 
-interface RoundResult {
-  heroAction: AttackAction | MissAction | null;
-  enemyAction: AttackAction | MissAction | null;
-  heroHp: number;
-  enemyHp: number;
-}
-
-const resolveRound = (
-  hero: Creature,
-  enemy: Creature,
-  heroFirst: boolean,
-  heroHp: number,
-  enemyHp: number,
-): RoundResult => {
-  const [first, second] = heroFirst ? [hero, enemy] : [enemy, hero];
-  let firstHp = heroFirst ? heroHp : enemyHp;
-  let secondHp = heroFirst ? enemyHp : heroHp;
-
-  const firstAction = resolveAttack(first, second);
-  if (firstAction.type === "hit") secondHp -= firstAction.damage;
-
-  const secondAction = secondHp > 0 ? resolveAttack(second, first) : null;
-  if (secondAction?.type === "hit") firstHp -= secondAction.damage;
+export const createFightState = (hero: Creature, enemy: Creature): FightState => {
+  const heroInit = d20() + abilityModifier(hero.abilities.dexterity);
+  const enemyInit = d20() + abilityModifier(enemy.abilities.dexterity);
+  const firstAttacker = heroInit >= enemyInit ? 'hero' : 'enemy';
 
   return {
+    heroStart: { ...hero },
+    enemyStart: { ...enemy },
+    hero: { ...hero },
+    enemy: { ...enemy },
+    rounds: [],
+    nextRound: 1,
+    firstAttacker,
+    winner: null,
+  };
+};
+
+export const resolveNextRound = (fight: FightState): { fight: FightState; round: CombatRound | null } => {
+  if (fight.winner) return { fight, round: null };
+
+  const heroFirst = fight.firstAttacker === 'hero';
+  const first = heroFirst ? fight.hero : fight.enemy;
+  const second = heroFirst ? fight.enemy : fight.hero;
+
+  const firstAction = resolveAttack(first, second);
+  if (firstAction.type === 'hit') {
+    second.currentHp -= firstAction.damage;
+  }
+
+  const secondAction = second.currentHp > 0 ? resolveAttack(second, first) : null;
+  if (secondAction?.type === 'hit') {
+    first.currentHp -= secondAction.damage;
+  }
+
+  const round: CombatRound = {
+    round: fight.nextRound,
+    firstAttacker: fight.firstAttacker,
     heroAction: heroFirst ? firstAction : secondAction,
     enemyAction: heroFirst ? secondAction : firstAction,
-    heroHp: heroFirst ? firstHp : secondHp,
-    enemyHp: heroFirst ? secondHp : firstHp,
+    heroHpAfter: fight.hero.currentHp,
+    enemyHpAfter: fight.enemy.currentHp,
+  };
+
+  let winner: 'hero' | 'enemy' | null = null;
+  if (fight.hero.currentHp > 0 && fight.enemy.currentHp <= 0) {
+    winner = 'hero';
+  } else if (fight.enemy.currentHp > 0 && fight.hero.currentHp <= 0) {
+    winner = 'enemy';
+  }
+
+  return {
+    fight: {
+      ...fight,
+      rounds: [...fight.rounds, round],
+      nextRound: fight.nextRound + 1,
+      winner,
+    },
+    round,
+  };
+};
+
+export const finalizeFight = (fight: FightState): FightLog => {
+  if (!fight.winner) {
+    throw new Error('Cannot finalize fight before winner is known');
+  }
+
+  return {
+    hero: { ...fight.heroStart },
+    enemy: { ...fight.enemyStart },
+    rounds: fight.rounds,
+    winner: fight.winner,
+    heroFinalHp: fight.hero.currentHp,
+    enemyFinalHp: fight.enemy.currentHp,
+    totalRounds: fight.rounds.length,
+  };
+};
+
+export const createRunState = (hero: Creature, enemies: Creature[]): RunState => ({
+  initialHero: { ...hero },
+  hero: { ...hero },
+  remainingEnemies: [...enemies],
+  currentEnemy: enemies[0] ? { ...enemies[0] } : null,
+  currentFight: null,
+  completedFights: [],
+  phase: enemies.length > 0 ? 'pre-fight' : 'completed',
+  enemiesDefeated: 0,
+  exitType: enemies.length > 0 ? null : 'survived',
+});
+
+export const applyPreFightHeal = (state: RunState, healAmount: number): RunState => {
+  if (state.phase !== 'pre-fight') return state;
+
+  return {
+    ...state,
+    hero: {
+      ...state.hero,
+      currentHp: Math.min(state.hero.maxHp, state.hero.currentHp + healAmount),
+    },
+  };
+};
+
+export const startFight = (state: RunState): RunState => {
+  if (state.phase !== 'pre-fight' || !state.currentEnemy) return state;
+
+  return {
+    ...state,
+    currentFight: createFightState(state.hero, state.currentEnemy),
+    phase: 'fighting',
+  };
+};
+
+export const advanceFightRound = (state: RunState): RunState => {
+  if (state.phase !== 'fighting' || !state.currentFight) return state;
+
+  const { fight } = resolveNextRound(state.currentFight);
+  if (!fight.winner) {
+    return { ...state, currentFight: fight };
+  }
+
+  const fightLog = finalizeFight(fight);
+
+  if (fightLog.winner === 'enemy') {
+    return {
+      ...state,
+      hero: { ...state.hero, currentHp: fightLog.heroFinalHp },
+      currentFight: fight,
+      completedFights: [...state.completedFights, fightLog],
+      phase: 'completed',
+      exitType: 'died',
+    };
+  }
+
+  const remainingEnemies = state.remainingEnemies.slice(1);
+  const nextEnemy = remainingEnemies[0] ? { ...remainingEnemies[0] } : null;
+
+  return {
+    ...state,
+    hero: { ...state.hero, currentHp: fightLog.heroFinalHp },
+    remainingEnemies,
+    currentEnemy: nextEnemy,
+    currentFight: fight,
+    completedFights: [...state.completedFights, fightLog],
+    enemiesDefeated: state.enemiesDefeated + 1,
+    phase: nextEnemy ? 'post-fight' : 'completed',
+    exitType: nextEnemy ? null : 'survived',
+  };
+};
+
+export const prepareNextFight = (state: RunState): RunState => {
+  if (state.phase !== 'post-fight' || !state.currentEnemy) return state;
+  return {
+    ...state,
+    currentFight: null,
+    phase: 'pre-fight',
+  };
+};
+
+export const exitRunEarly = (state: RunState): RunState => {
+  if (state.phase !== 'post-fight' && state.phase !== 'pre-fight') return state;
+  return {
+    ...state,
+    phase: 'completed',
+    exitType: 'early-exit',
+  };
+};
+
+export const toRunLog = (state: RunState): RunLog | null => {
+  if (!state.exitType) return null;
+
+  return {
+    fights: state.completedFights,
+    survived: state.exitType === 'survived',
+    enemiesDefeated: state.enemiesDefeated,
+    heroFinalHp: state.hero.currentHp,
+    exitType: state.exitType,
   };
 };
 
 export const fight = (hero: Creature, enemy: Creature): FightLog => {
-  const heroInit = d20() + abilityModifier(hero.abilities.dexterity);
-  const enemyInit = d20() + abilityModifier(enemy.abilities.dexterity);
-  const heroFirst = heroInit >= enemyInit;
-
-  let heroHp = hero.currentHp;
-  let enemyHp = enemy.currentHp;
-  const rounds: CombatRound[] = [];
-  let roundNum = 0;
-
-  while (heroHp > 0 && enemyHp > 0) {
-    roundNum++;
-    const result = resolveRound(hero, enemy, heroFirst, heroHp, enemyHp);
-    heroHp = result.heroHp;
-    enemyHp = result.enemyHp;
-    rounds.push({
-      round: roundNum,
-      firstAttacker: heroFirst ? "hero" : "enemy",
-      heroAction: result.heroAction,
-      enemyAction: result.enemyAction,
-      heroHpAfter: heroHp,
-      enemyHpAfter: enemyHp,
-    });
+  let state = createFightState(hero, enemy);
+  while (!state.winner) {
+    state = resolveNextRound(state).fight;
   }
-
-  return {
-    hero,
-    enemy,
-    rounds,
-    winner: heroHp > 0 ? "hero" : "enemy",
-    heroFinalHp: heroHp,
-    enemyFinalHp: enemyHp,
-    totalRounds: roundNum,
-  };
+  return finalizeFight(state);
 };
 
 export const simulateRun = (hero: Creature, enemies: Creature[]): RunLog => {
-  const fights: FightLog[] = [];
-  let currentHero = { ...hero };
-
-  for (const enemy of enemies) {
-    const result = fight(currentHero, enemy);
-    fights.push(result);
-
-    if (result.winner === "enemy") break;
-
-    currentHero = { ...currentHero, currentHp: result.heroFinalHp };
+  let run = createRunState(hero, enemies);
+  while (run.phase !== 'completed') {
+    if (run.phase === 'pre-fight') run = startFight(run);
+    else if (run.phase === 'fighting') run = advanceFightRound(run);
+    else if (run.phase === 'post-fight') run = prepareNextFight(run);
   }
 
-  const lastFight = fights.at(-1)!;
-  const survived = lastFight.winner === 'hero';
-
-  return {
-    fights,
-    survived,
-    enemiesDefeated: fights.filter((f) => f.winner === "hero").length,
-    heroFinalHp: lastFight.heroFinalHp,
-    exitType: survived ? 'survived' : 'died',
-  };
+  return toRunLog(run)!;
 };

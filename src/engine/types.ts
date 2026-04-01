@@ -21,14 +21,14 @@ export type Creature = {
 
 export type AttackAction = {
   type: 'hit';
-  roll: number;        // raw d20
-  modifier: number;    // attack bonus
-  total: number;       // roll + modifier
+  roll: number;
+  modifier: number;
+  total: number;
   targetAC: number;
   damageFormula: string;
-  damageRoll: number;  // raw damage dice (without modifier)
+  damageRoll: number;
   damageModifier: number;
-  damage: number;      // total damage
+  damage: number;
 };
 
 export type MissAction = {
@@ -42,10 +42,23 @@ export type MissAction = {
 export type CombatRound = {
   round: number;
   firstAttacker: 'hero' | 'enemy';
-  heroAction: AttackAction | MissAction | null; // null if hero died on enemy's turn
-  enemyAction: AttackAction | MissAction | null; // null if enemy died on hero's turn
+  heroAction: AttackAction | MissAction | null;
+  enemyAction: AttackAction | MissAction | null;
   heroHpAfter: number;
   enemyHpAfter: number;
+};
+
+export type RoundResolution = CombatRound;
+
+export type FightState = {
+  heroStart: Creature;
+  enemyStart: Creature;
+  hero: Creature;
+  enemy: Creature;
+  rounds: CombatRound[];
+  nextRound: number;
+  firstAttacker: 'hero' | 'enemy';
+  winner: 'hero' | 'enemy' | null;
 };
 
 export type FightLog = {
@@ -58,6 +71,20 @@ export type FightLog = {
   totalRounds: number;
 };
 
+export type RunPhase = 'pre-fight' | 'fighting' | 'post-fight' | 'completed';
+
+export type RunState = {
+  initialHero: Creature;
+  hero: Creature;
+  remainingEnemies: Creature[];
+  currentEnemy: Creature | null;
+  currentFight: FightState | null;
+  completedFights: FightLog[];
+  phase: RunPhase;
+  enemiesDefeated: number;
+  exitType: 'survived' | 'died' | 'early-exit' | null;
+};
+
 export type RunLog = {
   fights: FightLog[];
   survived: boolean;
@@ -66,21 +93,19 @@ export type RunLog = {
   exitType: 'survived' | 'died' | 'early-exit';
 };
 
-// --- Shop & Meta-progression ---
-
 export type UpgradeDefinition = {
   id: string;
   name: string;
   description: string;
-  costPerLevel: number; // cost = costPerLevel * (currentLevel + 1)
+  costPerLevel: number;
   maxLevel: number;
 };
 
 export type PlayerState = {
   gold: number;
-  purchasedUpgrades: Record<string, number>; // upgradeId -> levels purchased
+  purchasedUpgrades: Record<string, number>;
   totalRuns: number;
-  bestRun: number; // max enemies defeated in one run
+  bestRun: number;
   healCharges: number;
 };
 
@@ -88,7 +113,7 @@ export const HEAL_AMOUNT = 10;
 
 export type ShopItem = UpgradeDefinition & {
   currentLevel: number;
-  cost: number | null; // null = maxed out
+  cost: number | null;
   affordable: boolean;
 };
 
