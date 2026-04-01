@@ -77,17 +77,15 @@ function UpgradeCard({
 }: Readonly<{ item: ShopItem; onBuy: () => void }>) {
   const maxed = item.cost === null;
   const levelPct = (item.currentLevel / item.maxLevel) * 100;
+  const borderClass = maxed
+    ? "border-primary/20 opacity-60"
+    : item.affordable
+      ? "border-border"
+      : "border-border opacity-60";
 
   return (
     <div
-      className={cn(
-        "border rounded-xl p-3.5 bg-card transition-colors",
-        maxed
-          ? "border-primary/20 opacity-60"
-          : item.affordable
-            ? "border-border"
-            : "border-border opacity-60",
-      )}
+      className={cn("border rounded-xl p-3.5 bg-card transition-colors", borderClass)}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1 min-w-0 flex-1">
