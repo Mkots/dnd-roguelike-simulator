@@ -23,9 +23,9 @@
 - [x] Automated tests — unit tests for engine logic and component tests for UI
 - [x] Redesign according to [UI_DESIGN_GUIDELINES](UI_DESIGN_GUIDELINES.md) — dark D&D theme with gold accent, mobile-first `h-dvh` layout, sticky bottom action bars, safe area insets, compact HeroPreview, improved FighterCard gradient overlay, terminal-style CombatLog, Telegram ThemeParams integration
 - [x] Update [component tests](tests/component) — PlayerStats label test updated to match new chip labels
+- [x] Zustand store tests — unit tests for `gameStore` (initial state, getHero, collectRewards, buyUpgrade, buyHealCharge, spendHealCharge, resetProgress) and `runStore` (startRun, nextFight, clearRun, exitEarly, applyHeal)
 
 ## Up next
-- [ ] Write tests for [Zustand stores](src/store)
 
 ## Later
 - [ ] Balance pass — enemies, gold economy, upgrade costs
