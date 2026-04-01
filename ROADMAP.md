@@ -25,7 +25,82 @@
 - [x] Update [component tests](tests/component) — PlayerStats label test updated to match new chip labels
 - [x] Zustand store tests — unit tests for `gameStore` (initial state, getHero, collectRewards, buyUpgrade, buyHealCharge, spendHealCharge, resetProgress) and `runStore` (startRun, nextFight, clearRun, exitEarly, applyHeal)
 
+## Engine refactor
+- [ ] Replace full upfront run simulation with step-based fight progression
+  - Refactor the engine so the core simulation advances `1 round` at a time instead of precomputing the whole run in `startRun()`
+  - Keep the current auto-play UX, but make the engine capable of pausing cleanly between fights for player decisions
+  - Treat the pre-fight decision window as the main interaction point: before each enemy, the player may use heal, use one equipped skill, use both, or start the fight immediately
+- [ ] Introduce explicit run / fight state objects
+  - Replace `RunLog` as the primary source of truth with stateful objects such as `RunState`, `FightState`, and `RoundResolution`
+  - Store current hero snapshot, current enemy snapshot, active effects, remaining enemies, completed fight summaries, and current phase
+  - Add explicit run phases such as `pre-fight`, `fighting`, `post-fight`, `completed`
+- [ ] Split combat engine into pure step functions
+  - Extract pure functions like `createFightState()`, `resolveNextRound()`, `applyPreFightHeal()`, `applyPreFightSkill()`, and `finalizeFight()`
+  - Keep RNG inside narrow boundaries so round resolution stays testable even if dice are rolled progressively
+  - Make round resolution produce both the updated fight state and a log/event payload for the UI
+- [ ] Rework `runStore` around phase transitions instead of precomputed logs
+  - Replace `startRun()` behavior so it initializes run state and the first `pre-fight` phase instead of simulating all fights immediately
+  - Replace `nextFight()` with explicit actions such as `startFight()`, `advanceRound()`, `advanceUntilFightEnds()`, and `prepareNextFight()`
+  - Keep `exitEarly()` available only from the post-fight / pre-next-fight phase
+  - Update heal flow so it mutates the current hero state before combat rather than re-simulating a tail of fights
+- [ ] Redesign combat log generation for incremental simulation
+  - Change logs from "final archive generated upfront" to "append as rounds resolve"
+  - Keep enough structured data for the current animated `CombatLog`, but decouple it from the assumption that every future round already exists
+  - Store completed fights in a compact history so Results screen still has stable end-of-run summaries
+- [ ] Prepare the engine for status effects and pre-fight abilities
+  - Add per-combatant effect containers and turn counters keyed to owner turns, not shared fight rounds
+  - Define hooks for pre-fight effect application, round start, attack resolution, damage mitigation, and effect expiration
+  - Ensure the model can represent "next attack only" effects and multi-turn buffs without another major refactor
+- [ ] Update UI orchestration without changing the high-level UX
+  - Preserve the current feeling that combat plays automatically once started
+  - Insert a new pre-fight action step before each enemy with buttons for equipped skills and heal charges
+  - After combat ends, keep the existing between-fights cadence: review result, optionally `Safe exit`, otherwise continue
+- [ ] Test strategy for the refactor
+  - Add engine tests for per-round state transitions, fight completion, and run completion without relying on upfront simulation
+  - Add targeted tests for phase guards: heal only before fights, safe exit only after fights, no actions after run completion
+  - Prefer deterministic test seams for RNG injection or mocked dice so step-by-step simulation stays stable under test
+  - Add regression tests to prove the new phased engine still matches current combat outcomes for equivalent seeded scenarios
+
 ## Up next
+- [ ] Abilities / Skills foundation
+  - Define skill data model in the engine: `id`, `name`, `description`, `requiredClass`, `requiredLevel`, `target`, `durationRounds`, `effect`, `stackingRules`, `timing`
+  - Split skills into clear gameplay buckets: self-buffs, enemy debuffs, instant recovery, next-hit modifiers
+  - Add an initial skill roster for the first pass:
+    - `Quick Jab` — deal `+5` damage on the next attack
+    - `Sharpen Blade` — `+2` damage for `5` rounds
+    - `Minor Shielding` — `+4 AC` for `5` rounds
+    - `Brace` — reduce incoming damage by `3` for `4` rounds
+    - `Second Wind (Lite)` — restore `5 HP`
+    - `Focus Mind` — `+4 initiative` for `5` rounds
+    - `Distract Enemy` — enemy gets `-3 attack` for `3` rounds
+    - `Weaken Armor` — target gets `-3 AC` for `4` rounds
+- [ ] Class / level integration
+  - Add class-specific skill unlock rules so abilities are tied to hero class identity instead of acting like generic consumables
+  - Add level-gated unlocks and surface them in hero generation / progression data
+  - Decide whether each class starts with one default unlocked skill or unlocks everything through level milestones
+- [ ] Loadout system before combat
+  - Add a pre-run skill loadout step similar to consumable heal selection, but with no gold cost
+  - Limit equipped skills to `2` active slots per run
+  - Keep unlocked skills persistent in progression, while equipped skills are selected fresh before each run
+- [ ] Combat engine support
+  - Extend combat state with temporary status effects, per-round duration countdowns, and one-shot effects such as "next attack only"
+  - Add explicit timing hooks for skill use: before fight, on hero turn, instant cast, and effect expiration
+  - Re-simulate fights correctly when a skill changes hero or enemy stats, matching the current upfront simulation approach
+  - Log skill activation and expiration in the combat log with the same clarity as attack rolls and damage formulas
+- [ ] UX / screens
+  - Add a skills panel on Start screen or a dedicated loadout step before entering the run
+  - Show equipped skills in Game screen with clear state: available, active, consumed, rounds remaining
+  - Reuse the existing bottom action bar pattern so skill buttons feel consistent with heal / continue actions
+  - Add lightweight tooltips or compact descriptions so effects are readable on mobile
+- [ ] Balance / rules decisions
+  - Prevent abusive stacking for overlapping buffs and debuffs; document whether duplicate effects refresh, replace, or are blocked
+  - Decide whether skills are once per fight, once per run, or cooldown-based; start with the simplest rule set for v1
+  - Verify that short fights still make defensive and tempo skills meaningful compared with pure damage picks
+- [ ] Testing
+  - Add engine tests for status durations, initiative modifiers, AC / attack debuffs, next-hit bonuses, healing caps, and effect expiration
+  - Add store tests for unlocks, equipped skill limits, and run initialization with selected skills
+  - Add component tests for loadout UI, disabled states, round counters, and combat log entries
+  - Add a small regression matrix for heal + skills interaction so re-simulation does not corrupt later fights
 
 ## Later
 - [ ] Balance pass — enemies, gold economy, upgrade costs
