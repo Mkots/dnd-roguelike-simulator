@@ -150,7 +150,7 @@ export default function GameScreen() {
               className="w-full h-12 text-base font-semibold"
               onClick={handleContinue}
             >
-              Next Enemy
+              Next Enemy{' '}
               <span className="text-xs font-normal ml-2 opacity-70">
                 risk: death = −20% gold
               </span>

@@ -220,5 +220,31 @@ describe('runStore — applyHeal()', () => {
     const { runLog } = useRunStore.getState();
     expect(runLog!.heroFinalHp).toBeLessThanOrEqual(hero.maxHp);
   });
+
+  it('is a no-op when currentFightIndex points beyond recorded fights', () => {
+    const hero = makeHero();
+    // Hero dies on fight 0 — only 1 fight recorded
+    useRunStore.getState().startRun(hero, [makeStrongEnemy()]);
+    // Advance index past the recorded fights
+    useRunStore.setState({ currentFightIndex: 1 });
+    const before = useRunStore.getState().runLog;
+    useRunStore.getState().applyHeal(10, hero);
+    expect(useRunStore.getState().runLog).toEqual(before);
+  });
+
+  it('stops re-simulating after hero dies in tail fights', () => {
+    const hero = makeHero();
+    const enemies = [makeWeakEnemy(), makeStrongEnemy(), makeWeakEnemy()];
+    useRunStore.getState().startRun(hero, enemies);
+
+    // Re-simulate tail: hero beats weakEnemy at index 0, then meets strongEnemy
+    useRunStore.getState().applyHeal(1, hero);
+
+    const { runLog } = useRunStore.getState();
+    // Run ends after the losing fight — third enemy is never reached
+    expect(runLog!.survived).toBe(false);
+    expect(runLog!.fights[1].winner).toBe('enemy');
+    expect(runLog!.fights).toHaveLength(2);
+  });
 });
 

@@ -1,14 +1,12 @@
+type TelegramWebApp = {
+  ready(): void;
+  expand(): void;
+  themeParams: Record<string, string>;
+  onEvent(eventType: string, eventHandler: () => void): void;
+};
+
 declare global {
-  interface Window {
-    Telegram?: {
-      WebApp: {
-        ready(): void;
-        expand(): void;
-        themeParams: Record<string, string>;
-        onEvent(eventType: string, eventHandler: () => void): void;
-      };
-    };
-  }
+  var Telegram: { WebApp: TelegramWebApp } | undefined;
 }
 
 function applyThemeParams(params: Record<string, string>): void {
@@ -36,7 +34,7 @@ function applyThemeParams(params: Record<string, string>): void {
 }
 
 export function initTelegram(): void {
-  const tg = window.Telegram?.WebApp;
+  const tg = globalThis.Telegram?.WebApp;
   if (!tg) return;
 
   tg.ready();
