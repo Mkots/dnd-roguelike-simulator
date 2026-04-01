@@ -77,11 +77,14 @@ function UpgradeCard({
 }: Readonly<{ item: ShopItem; onBuy: () => void }>) {
   const maxed = item.cost === null;
   const levelPct = (item.currentLevel / item.maxLevel) * 100;
-  const borderClass = maxed
-    ? "border-primary/20 opacity-60"
-    : item.affordable
-      ? "border-border"
-      : "border-border opacity-60";
+  let borderClass: string;
+  if (maxed) {
+    borderClass = "border-primary/20 opacity-60";
+  } else if (item.affordable) {
+    borderClass = "border-border";
+  } else {
+    borderClass = "border-border opacity-60";
+  }
 
   return (
     <div
