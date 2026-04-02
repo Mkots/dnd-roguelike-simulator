@@ -10,7 +10,7 @@ import {
   buyHealCharge as buyHealChargeFromShop,
 } from '../engine/shop';
 import { WEAPON_PROGRESSION } from '../engine/upgrades';
-import { MAX_EQUIPPED_SKILLS } from '../engine/skills';
+import { MAX_EQUIPPED_SKILLS, DEFAULT_UNLOCKED_SKILLS } from '../engine/skills';
 
 export const DEFAULT_HERO_CONFIG: HeroConfig = {
   name: 'Hero',
@@ -105,6 +105,21 @@ export const useGameStore = create<GameStore>()(
 
       resetProgress: () => set({ playerState: createInitialPlayerState() }),
     }),
-    { name: 'dnd-roguelike-save' }
+    {
+      name: 'dnd-roguelike-save',
+      version: 1,
+      migrate: (persistedState: unknown, fromVersion: number) => {
+        const state = persistedState as Record<string, unknown>;
+        const ps = (state.playerState ?? {}) as Record<string, unknown>;
+
+        if (fromVersion < 1) {
+          // Skills were added in v1 — backfill defaults for old saves
+          if (!Array.isArray(ps.unlockedSkills)) ps.unlockedSkills = [...DEFAULT_UNLOCKED_SKILLS];
+          if (!Array.isArray(ps.equippedSkills)) ps.equippedSkills = [];
+        }
+
+        return { ...state, playerState: ps };
+      },
+    }
   )
 );
