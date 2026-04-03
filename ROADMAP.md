@@ -114,6 +114,14 @@
   - Component tests: `SkillButton` (render, disabled states, click callbacks)
   - Component tests: `SkillLoadout` (render, equip limit, callbacks)
 
+## Migration (2026-04-03)
+- [x] Package manager migration from npm to pnpm
+  - Updated GitHub Actions workflows to use pnpm (deploy.yml, sonar.yml)
+  - Added pnpm-lock.yaml
+  - Removed package-lock.json
+  - Updated documentation (README.md, CLAUDE.md) to reference pnpm commands
+  - Updated .gitignore to exclude npm/yarn lock files
+
 ## Later
 - [ ] Balance pass — enemies, gold economy, upgrade costs
 - [ ] Classes / Hero generator — different classes with unique stats
