@@ -38,28 +38,28 @@ src/
 ## Getting started
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 ## Scripts
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start dev server |
-| `npm run build` | Type-check and build for production |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Run ESLint with auto-fix |
-| `npm run test` | Run unit tests (Vitest) |
-| `npm run test:coverage` | Unit tests with V8 coverage report |
-| `npm run test:ct` | Component tests (Playwright CT) |
-| `npm run test:ct:coverage` | Component tests with coverage |
+| `pnpm run dev` | Start dev server |
+| `pnpm run build` | Type-check and build for production |
+| `pnpm run lint` | Run ESLint |
+| `pnpm run lint:fix` | Run ESLint with auto-fix |
+| `pnpm run test` | Run unit tests (Vitest) |
+| `pnpm run test:coverage` | Unit tests with V8 coverage report |
+| `pnpm run test:ct` | Component tests (Playwright CT) |
+| `pnpm run test:ct:coverage` | Component tests with coverage |
 
 ## Testing
 
 Unit tests cover the full engine (`combat`, `dice`, `shop`, `creatures`, `enemies`, `names`) and Zustand stores (`gameStore`, `runStore`) at ~100%. Component tests cover UI components (`CombatLog`, `FighterCard`, `HeroPreview`, `PlayerStats`, `GameTitle`).
 
 ```bash
-npm run test          # 166 unit tests
-npm run test:ct       # 21 component tests
+pnpm run test          # 166 unit tests
+pnpm run test:ct       # 21 component tests
 ```

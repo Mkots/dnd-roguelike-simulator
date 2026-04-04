@@ -18,6 +18,10 @@ playwright/.cache
 test-results
 *.local
 
+# Lock files
+package-lock.json
+yarn.lock
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -55,9 +55,9 @@ D&D 5e roguelike: the player runs through a fixed sequence of enemies, one fight
 * When gameplay/UI behavior changes, update tests to match the new implementation instead of weakening or bypassing assertions
 
 ## Change validation
-* `npm run build` must pass with no errors
-* `npm run lint` must pass with no errors
-* `npm run test` must pass with no errors
-* `npm run test:ct` must pass with no errors; if the implementation changed, fix the component tests so they reflect the new behavior
-* If new packages were added or dependencies were changed, `npm audit` must pass with no errors
+* `pnpm run build` must pass with no errors
+* `pnpm run lint` must pass with no errors
+* `pnpm run test` must pass with no errors
+* `pnpm run test:ct` must pass with no errors; if the implementation changed, fix the component tests so they reflect the new behavior
+* If new packages were added or dependencies were changed, `pnpm audit` must pass with no errors
 * Completed work must be recorded in `ROADMAP.md`
