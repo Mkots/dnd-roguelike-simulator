@@ -63,6 +63,11 @@ const FORBIDDEN_FILES = [
   /id_dsa/,
 ];
 
+// Files that are allowed to contain secret-like patterns (e.g. this script itself).
+const SELF_EXCLUDED = new Set([
+  'scripts/check-secrets.js',
+]);
+
 // Binary file extensions to skip content scanning.
 const BINARY_EXT = new Set([
   'png','jpg','jpeg','gif','webp','ico','svg',
@@ -102,6 +107,7 @@ for (const file of stagedFiles) {
 // 2. Scan file contents for secret patterns.
 for (const file of stagedFiles) {
   if (isBinary(file)) continue;
+  if (SELF_EXCLUDED.has(file)) continue;
 
   let content;
   try {
