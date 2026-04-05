@@ -1,0 +1,66 @@
+#!/bin/sh
+# Pre-commit security checks.
+# Activated via: git config core.hooksPath .githooks
+# (the "prepare" script in package.json sets this automatically on pnpm install)
+
+# Resolve pnpm: git hooks don't inherit the shell's PATH from mise/nvm/etc.
+# Try mise first, then fall back to common install locations.
+if command -v mise > /dev/null 2>&1; then
+  PNPM="mise exec -- pnpm"
+elif command -v pnpm > /dev/null 2>&1; then
+  PNPM="pnpm"
+else
+  # Hardcoded fallbacks for common package managers
+  for candidate in \
+    "$HOME/.local/share/mise/shims/pnpm" \
+    "$HOME/.local/bin/pnpm" \
+    "/usr/local/bin/pnpm"; do
+    if [ -x "$candidate" ]; then
+      PNPM="$candidate"
+      break
+    fi
+  done
+fi
+
+if [ -z "$PNPM" ]; then
+  echo "[pre-commit] ERROR: pnpm not found. Install it or ensure mise is on PATH."
+  exit 1
+fi
+
+PASS=0
+
+# ── 1. Pinned versions ────────────────────────────────────────────────────────
+echo "[pre-commit] Checking package.json version ranges..."
+node scripts/check-pkg-versions.js
+if [ $? -ne 0 ]; then
+  PASS=1
+fi
+
+# ── 2. Secret scan ───────────────────────────────────────────────────────────
+echo "[pre-commit] Scanning staged files for secrets..."
+node scripts/check-secrets.js
+if [ $? -ne 0 ]; then
+  PASS=1
+fi
+
+# ── 3. Lint (only staged JS/TS files) ────────────────────────────────────────
+STAGED_JS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|jsx|ts|tsx|mjs|cjs)$')
+if [ -n "$STAGED_JS" ]; then
+  echo "[pre-commit] Running ESLint on staged files..."
+  echo "$STAGED_JS" | xargs $PNPM run lint --
+  if [ $? -ne 0 ]; then
+    PASS=1
+  fi
+fi
+
+# ── Result ───────────────────────────────────────────────────────────────────
+if [ $PASS -ne 0 ]; then
+  echo ""
+  echo "✗ Pre-commit checks failed. Fix the issues above before committing."
+  echo "  To bypass in an emergency (do NOT abuse): git commit --no-verify"
+  exit 1
+fi
+
+echo ""
+echo "✓ All pre-commit checks passed."
+exit 0
